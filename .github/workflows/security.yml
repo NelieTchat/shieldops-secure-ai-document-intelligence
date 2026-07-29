@@ -1,0 +1,31 @@
+name: ShieldOps Security — Scheduled Scans
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # daily at 2am
+  workflow_dispatch:
+
+jobs:
+  scheduled-security-scan:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trivy — Full Repo Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload Trivy Results to Security Hub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Checkov — Full IaC Scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/
+          output_format: sarif

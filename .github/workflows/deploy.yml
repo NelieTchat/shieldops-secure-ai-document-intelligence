@@ -1,0 +1,50 @@
+name: ShieldOps Deploy — Terraform Apply + Ansible
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: Production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/environments/production
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: terraform/environments/production
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Trivy — Image Scan Before Deploy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: image
+          exit-code: 1
+          severity: CRITICAL,HIGH
+
+      - name: Run Ansible Playbook
+        run: |
+          ansible-playbook ansible/playbooks/deploy-shieldops.yml \
+            -i inventory/production \
+            --vault-password-file ~/.vault_pass
+
+      - name: OWASP ZAP — DAST Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: ${{ secrets.APP_URL }}
+
+      - name: Post-Deployment Smoke Tests
+        run: bash scripts/smoke-tests.sh

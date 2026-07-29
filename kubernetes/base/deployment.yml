@@ -1,0 +1,50 @@
+# ShieldOps — Base Kubernetes Deployment
+# Applied to all environments via Kustomize overlays
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shieldops-app
+  namespace: shieldops
+  labels:
+    app: shieldops-app
+    version: v1.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shieldops-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: shieldops-app
+    spec:
+      serviceAccountName: shieldops-sa   # IRSA — no static keys
+      containers:
+        - name: shieldops-app
+          image: nexus.shieldops.internal/shieldops-app:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"

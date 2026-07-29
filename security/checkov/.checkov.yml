@@ -1,0 +1,10 @@
+# ShieldOps — Checkov IaC Scan Configuration
+directory:
+  - terraform/
+framework:
+  - terraform
+  - kubernetes
+skip-check:
+  - CKV_AWS_18   # example — customize per environment
+output: cli
+soft-fail: false

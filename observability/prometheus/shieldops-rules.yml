@@ -1,0 +1,35 @@
+# ShieldOps — Prometheus Recording & Alerting Rules
+groups:
+  - name: shieldops.application
+    rules:
+      - alert: ShieldOpsHighLLMLatency
+        expr: shieldops_llm_request_duration_seconds{quantile="0.99"} > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM response latency p99 > 2s"
+
+      - alert: ShieldOpsHighAuthFailures
+        expr: rate(shieldops_authentication_failures_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High authentication failure rate"
+
+      - alert: ShieldOpsDocProcessingFailures
+        expr: rate(shieldops_document_processing_failures_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Document processing failure rate elevated"
+
+      - alert: ShieldOpsPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="shieldops"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pod crash looping in shieldops namespace"

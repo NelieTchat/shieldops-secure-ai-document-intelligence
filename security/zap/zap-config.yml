@@ -1,0 +1,24 @@
+# ShieldOps — OWASP ZAP DAST Configuration
+env:
+  contexts:
+    - name: ShieldOps
+      urls:
+        - https://shieldops.agency.gov
+      includePaths:
+        - https://shieldops.agency.gov.*
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+jobs:
+  - type: passiveScan-config
+  - type: spider
+    parameters:
+      maxDuration: 5
+  - type: activeScan
+    parameters:
+      maxRuleDurationInMins: 5
+  - type: report
+    parameters:
+      reportDir: /zap/reports
+      reportTitle: ShieldOps DAST Report
