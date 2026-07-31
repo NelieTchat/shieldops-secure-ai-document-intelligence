@@ -19,3 +19,16 @@ terraform {
 provider "aws" {
   region = var.aws_region
 }
+
+module "vpc" {
+  source = "../../modules/vpc"
+
+  project_name             = "shieldops"
+  environment              = "staging"
+  vpc_cidr                 = var.vpc_cidr
+  az_count                 = var.az_count
+  nat_gateway_strategy     = var.nat_gateway_strategy
+  enable_flow_logs         = true
+  flow_logs_retention_days = var.flow_logs_retention_days
+  tags                     = var.tags
+}
