@@ -68,9 +68,9 @@ resource "aws_subnet" "public" {
   for_each = local.public_subnet_cidrs
 
   vpc_id                  = aws_vpc.this.id
-  cidr_block               = each.value
-  availability_zone        = local.azs[tonumber(each.key)]
-  map_public_ip_on_launch  = true
+  cidr_block              = each.value
+  availability_zone       = local.azs[tonumber(each.key)]
+  map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-public-${local.azs[tonumber(each.key)]}"
@@ -82,9 +82,9 @@ resource "aws_subnet" "private_app" {
   for_each = local.private_app_subnet_cidrs
 
   vpc_id                  = aws_vpc.this.id
-  cidr_block               = each.value
-  availability_zone        = local.azs[tonumber(each.key)]
-  map_public_ip_on_launch  = false
+  cidr_block              = each.value
+  availability_zone       = local.azs[tonumber(each.key)]
+  map_public_ip_on_launch = false
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-private-app-${local.azs[tonumber(each.key)]}"
@@ -96,9 +96,9 @@ resource "aws_subnet" "private_data" {
   for_each = local.private_data_subnet_cidrs
 
   vpc_id                  = aws_vpc.this.id
-  cidr_block               = each.value
-  availability_zone        = local.azs[tonumber(each.key)]
-  map_public_ip_on_launch  = false
+  cidr_block              = each.value
+  availability_zone       = local.azs[tonumber(each.key)]
+  map_public_ip_on_launch = false
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-private-data-${local.azs[tonumber(each.key)]}"
@@ -150,7 +150,7 @@ resource "aws_route_table" "public" {
 resource "aws_route" "public_internet_access" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id              = aws_internet_gateway.this.id
+  gateway_id             = aws_internet_gateway.this.id
 }
 
 resource "aws_route_table_association" "public" {
@@ -175,7 +175,7 @@ resource "aws_route" "private_app_nat_access" {
 
   route_table_id         = aws_route_table.private_app[each.key].id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id          = aws_nat_gateway.this[var.nat_gateway_strategy == "one_per_az" ? each.key : "0"].id
+  nat_gateway_id         = aws_nat_gateway.this[var.nat_gateway_strategy == "one_per_az" ? each.key : "0"].id
 }
 
 resource "aws_route_table_association" "private_app" {
