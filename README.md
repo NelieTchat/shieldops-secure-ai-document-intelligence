@@ -153,11 +153,4 @@ shieldops-secure-ai-document-intelligence/
 EOF
 
 
-That closes the README loose end. Next: Route 53 — the first piece in the Pillar 1 Terraform dependency chain, feeding the ALB/WAF setup after it.
-
-Updated tasks
-Updated tasks
-
-Run that block, confirm it lands, and let me know when you're ready to start the Route 53 module.
-
 
