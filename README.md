@@ -51,6 +51,8 @@ assuming "why not X":
 | [0005](docs/adr/0005-ingestion-vs-document-processor-split.md) | Split Ingestion Service from Document Processor |
 | [0006](docs/adr/0006-ansible-scoped-to-bootstrap.md) | Ansible scoped to bastion bootstrap only |
 | [0007](docs/adr/0007-event-driven-ingestion.md) | Event-driven ingestion via S3 → EventBridge → SQS |
+| [0008](docs/adr/0008-argo-rollouts-progressive-delivery.md) | Argo Rollouts for progressive delivery |
+| [0009](docs/adr/0009-s3-system-of-record-for-documents.md) | Amazon S3 as the system of record for documents |
 
 ---
 
@@ -62,9 +64,10 @@ assuming "why not X":
 | AWS Services | VPC · WAF · ALB · EKS · Aurora PostgreSQL + pgvector · EFS · S3 · ECR · EventBridge · SQS · KMS · Route 53 |
 | Ingress | AWS Load Balancer Controller (sole ingress path — ADR 0003) |
 | CI/CD | GitHub Actions → Argo CD (GitOps) |
-| Delivery | Rolling (default) + Argo Rollouts canary with Prometheus-driven promotion |
+| Delivery | Rolling (default) + Argo Rollouts canary with Prometheus-driven promotion (ADR 0008) |
 | Host Bootstrap | Ansible (bastion host only — ADR 0006) |
 | Container Registry | Amazon ECR (ADR 0001) |
+| Document Storage | Amazon S3, system of record (ADR 0009); EFS scoped to shared processing workspace |
 | Security | Checkov · Trivy · Secret Scanning · OWASP ZAP · OPA/Gatekeeper · GuardDuty · Security Hub |
 | Monitoring | Prometheus · Grafana · kube-state-metrics · node-exporter |
 | Logging | Fluent Bit → CloudWatch Logs → OpenSearch |
@@ -76,42 +79,41 @@ assuming "why not X":
 
 ## Project Structure
 
-```
 shieldops-secure-ai-document-intelligence/
-├── terraform/               # Infrastructure as Code
-│   ├── modules/              # vpc, alb, eks, rds, efs, kms, iam, waf, s3, ecr, messaging
-│   └── environments/         # staging, production (GovCloud)
-├── ansible/                  # Bastion host bootstrap only (ADR 0006)
-│   └── roles/
-├── kubernetes/                # K8s Manifests
-│   ├── base/                  # core manifests
-│   ├── overlays/              # env-specific patches
-│   └── policies/              # OPA/Gatekeeper policies
-├── helm/                       # Helm Charts (deployed via Argo CD)
-│   └── shieldops/
-├── application/                # Application Source
-│   ├── api/                    # ShieldOps API
-│   └── frontend/               # UI
-├── workers/                    # Pipeline Microservices (ADR 0004, 0005)
-│   ├── ingestion-service/       # malware scan, quarantine (ADR 0005)
-│   ├── document-processor/      # parse, chunk (ADR 0005)
-│   └── llm-service/              # LLM inference
-├── security/                   # DevSecOps Tooling
-│   ├── checkov/                 # Terraform IaC scan rules
-│   ├── trivy/                    # Container image scan config
-│   ├── zap/                      # OWASP ZAP DAST config
-│   └── gatekeeper/               # OPA policy definitions
-├── observability/               # Monitoring & Observability
-│   ├── prometheus/               # scrape configs, recording rules
-│   ├── grafana/dashboards/       # dashboard JSON definitions
-│   ├── alertmanager/             # alert routing rules
-│   ├── fluent-bit/               # log collection config
-│   └── opentelemetry/            # OTel collector config
+├── terraform/ # Infrastructure as Code
+│ ├── modules/ # vpc, alb, eks, rds, efs, kms, iam, waf, s3, ecr, messaging
+│ └── environments/ # staging, production (GovCloud)
+├── ansible/ # Bastion host bootstrap only (ADR 0006)
+│ └── roles/
+├── kubernetes/ # K8s Manifests
+│ ├── base/ # core manifests
+│ ├── overlays/ # env-specific patches
+│ └── policies/ # OPA/Gatekeeper policies
+├── helm/ # Helm Charts (deployed via Argo CD)
+│ └── shieldops/
+├── application/ # Application Source
+│ ├── api/ # ShieldOps API
+│ └── frontend/ # UI
+├── workers/ # Pipeline Microservices (ADR 0004, 0005)
+│ ├── ingestion-service/ # malware scan, quarantine (ADR 0005)
+│ ├── document-processor/ # parse, chunk (ADR 0005)
+│ └── llm-service/ # LLM inference
+├── security/ # DevSecOps Tooling
+│ ├── checkov/ # Terraform IaC scan rules
+│ ├── trivy/ # Container image scan config
+│ ├── zap/ # OWASP ZAP DAST config
+│ └── gatekeeper/ # OPA policy definitions
+├── observability/ # Monitoring & Observability
+│ ├── prometheus/ # scrape configs, recording rules
+│ ├── grafana/dashboards/ # dashboard JSON definitions
+│ ├── alertmanager/ # alert routing rules
+│ ├── fluent-bit/ # log collection config
+│ └── opentelemetry/ # OTel collector config
 ├── docs/
-│   └── adr/                      # Architecture Decision Records
-├── architecture/                 # Architecture diagrams
-└── .github/workflows/            # CI/CD pipeline definitions
-```
+│ └── adr/ # Architecture Decision Records
+├── architecture/ # Architecture diagrams
+└── .github/workflows/ # CI/CD pipeline definitions
+
 
 ---
 
@@ -119,7 +121,7 @@ shieldops-secure-ai-document-intelligence/
 
 | Phase | Focus | Status |
 |---|---|---|
-| 0 | Architecture Decisions — 7 ADRs locked | Done |
+| 0 | Architecture Decisions — 9 ADRs locked | Done |
 | 1 | Foundation — Terraform VPC (staging + production) | In Progress |
 | 1 | Foundation — Route 53, WAF, ALB, EKS, Aurora, EFS, S3, ECR, messaging, IAM/IRSA | Not Started |
 | 2 | Application — API, auth, ingestion, document-processor, llm-service | Not Started |
@@ -133,7 +135,7 @@ shieldops-secure-ai-document-intelligence/
 ## Deployment Strategy
 
 - **Rolling** — default for all routine releases (`maxUnavailable: 0`, `maxSurge: 1`)
-- **Canary** — LLM model updates, RAG pipeline changes, auth service changes
+- **Canary** — LLM model updates, RAG pipeline changes, auth service changes, via Argo Rollouts (ADR 0008)
   - 5% -> 25% -> 50% -> 75% -> 100% traffic progression
   - Prometheus-driven promotion — automatic rollback if metrics breach thresholds
 
@@ -150,4 +152,12 @@ shieldops-secure-ai-document-intelligence/
 - FedRAMP-aligned security controls
 EOF
 
-```
+
+That closes the README loose end. Next: Route 53 — the first piece in the Pillar 1 Terraform dependency chain, feeding the ALB/WAF setup after it.
+
+Updated tasks
+Updated tasks
+
+Run that block, confirm it lands, and let me know when you're ready to start the Route 53 module.
+
+
