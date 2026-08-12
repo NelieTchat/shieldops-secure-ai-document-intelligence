@@ -1,7 +1,9 @@
 # ADR 0006: Narrow Ansible's Role to Host Bootstrap Only
 
 ## Status
-Accepted
+Accepted. Superseded in part by ADR 0010 — the bastion host this ADR
+scoped Ansible to no longer exists; see ADR 0010 for the current
+approach to private-subnet access (SSM Session Manager + EKS Jobs).
 
 ## Context
 ShieldOps's delivery model is Terraform for infrastructure provisioning
@@ -40,6 +42,12 @@ and standalone scripts like NGINX/cert-update scripts written for an
 earlier EC2-based design) are being retired or re-scoped to match this
 boundary.
 
+**Update (see ADR 0010):** the bastion host itself has since been
+eliminated in favor of SSM Session Manager and EKS-based migration Jobs.
+Ansible therefore has no active target left in ShieldOps's
+Terraform-managed infrastructure. This ADR is retained as the historical
+record of why Ansible was narrowed at the time.
+
 ## Alternatives Considered
 **Keep Ansible for both host bootstrap and application deployment.**
 Rejected. This is the status quo being corrected — it creates two
@@ -71,3 +79,4 @@ proportionate to the reference architecture's current scope.
 - If more non-Kubernetes hosts are added later, Ansible's footprint could
   grow again — acceptable, as long as it stays scoped to host-level
   bootstrap and never back into application deployment territory.
+- (Superseded) The bastion host itself no longer exists — see ADR 0010.
