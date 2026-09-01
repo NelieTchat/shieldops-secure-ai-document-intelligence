@@ -34,6 +34,10 @@ Prometheus/Grafana/OpenTelemetry/CloudWatch/Alertmanager for full-stack
 observability, with canary delivery and automatic rollback on metric
 breach.
 
+Sitting on top of all three, once Pillars 1–3 are real: an agentic
+operations layer (ADR 0011) that investigates the platform itself —
+kept in a separate `agents/` boundary, not bundled into application code.
+
 ---
 
 ## Architecture Decisions
@@ -53,6 +57,7 @@ assuming "why not X":
 | [0008](docs/adr/0008-argo-rollouts-progressive-delivery.md) | Argo Rollouts for progressive delivery |
 | [0009](docs/adr/0009-s3-system-of-record-for-documents.md) | Amazon S3 as the system of record for documents |
 | [0010](docs/adr/0010-eliminate-bastion-ssm-and-eks-jobs.md) | Eliminate bastion host — SSM Session Manager + EKS migration Jobs |
+| [0011](docs/adr/0011-langgraph-agentcore-agentic-operations.md) | LangGraph + Bedrock AgentCore for agentic operations (MVP-1 scope) |
 
 ---
 
@@ -75,27 +80,37 @@ assuming "why not X":
 | Tracing | OpenTelemetry |
 | Alerting | Alertmanager → SNS → Slack / Email |
 | AI / RAG | pgvector (ADR 0002) · LLM Service (EKS) · ClamAV |
+| Agentic Operations | LangGraph · Amazon Bedrock AgentCore (ADR 0011, implementation queued behind Pillar 2) |
 
 ---
 
 ## Project Structure
+
 shieldops-secure-ai-document-intelligence/
 ├── terraform/ # Infrastructure as Code
 │ ├── modules/ # vpc, route53, waf, alb, eks, kms, rds, efs, s3, ecr, messaging, iam
 │ └── environments/ # staging, production (GovCloud)
+├── application/ # ShieldOps application — five deployable services
+│ ├── frontend/ # user-facing web app
+│ ├── api/ # REST entry point: routing, auth, document metadata
+│ │ ├── auth/
+│ │ ├── documents/
+│ │ ├── routes/
+│ │ ├── services/
+│ │ ├── models/
+│ │ ├── middleware/
+│ │ └── tests/
+│ ├── ingestion-service/ # intake, malware scan handoff (ADR 0005)
+│ ├── document-processor/ # parse, chunk, embed (ADR 0005)
+│ └── llm-service/ # RAG retrieval + Bedrock (ADR 0002)
+├── agents/ # Agentic Operations (ADR 0011) — separate from application/
+│ └── incident-investigator/ # implementation queued behind Pillar 2
 ├── kubernetes/ # K8s Manifests
 │ ├── base/ # core manifests
 │ ├── overlays/ # env-specific patches
 │ └── policies/ # OPA/Gatekeeper policies
 ├── helm/ # Helm Charts (deployed via Argo CD)
 │ └── shieldops/
-├── application/ # Application Source
-│ ├── api/ # ShieldOps API
-│ └── frontend/ # UI
-├── workers/ # Pipeline Microservices (ADR 0004, 0005)
-│ ├── ingestion-service/ # malware scan, quarantine (ADR 0005)
-│ ├── document-processor/ # parse, chunk (ADR 0005)
-│ └── llm-service/ # LLM inference
 ├── security/ # DevSecOps Tooling
 │ ├── checkov/ # Terraform IaC scan rules
 │ ├── trivy/ # Container image scan config
@@ -111,19 +126,28 @@ shieldops-secure-ai-document-intelligence/
 │ └── adr/ # Architecture Decision Records
 ├── architecture/ # Architecture diagrams
 └── .github/workflows/ # CI/CD pipeline definitions
+
+
+Five deployable application services, not seven — `api` consolidates
+routing, authentication, and document metadata internally rather than
+splitting each into its own container, ECR repo, IAM role, and CI/CD
+path. That separation gets extracted later only if independent scaling
+or ownership actually requires it, not by default.
+
 ---
 
 ## Build Status
 
 | Phase | Focus | Status |
 |---|---|---|
-| 0 | Architecture Decisions — 10 ADRs locked | Done |
+| 0 | Architecture Decisions — 11 ADRs locked | Done |
 | 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done |
-| 2 | Application — API, auth, ingestion, document-processor, llm-service | Not Started |
+| 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | Not Started |
 | 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | Not Started |
 | 4 | Security — Checkov, Trivy, ZAP, OPA/Gatekeeper, WAF | Not Started |
 | 5 | Observability — Prometheus, Grafana, OTel, Fluent Bit, CloudWatch | Not Started |
 | 6 | Production Validation — canary, alerts, dashboards, audit trail | Not Started |
+| 7 | Agentic Operations — LangGraph Incident Investigator (ADR 0011) | Not Started, queued behind Phase 2–3 |
 
 All Phase 1 modules pass `terraform validate` in both environments.
 Nothing has been applied against a live AWS account yet.
