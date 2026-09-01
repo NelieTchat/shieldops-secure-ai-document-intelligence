@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # ShieldOps
 
 **Secure AI-Powered Document Intelligence — AWS GovCloud Reference Architecture**
@@ -53,6 +52,7 @@ assuming "why not X":
 | [0007](docs/adr/0007-event-driven-ingestion.md) | Event-driven ingestion via S3 → EventBridge → SQS |
 | [0008](docs/adr/0008-argo-rollouts-progressive-delivery.md) | Argo Rollouts for progressive delivery |
 | [0009](docs/adr/0009-s3-system-of-record-for-documents.md) | Amazon S3 as the system of record for documents |
+| [0010](docs/adr/0010-eliminate-bastion-ssm-and-eks-jobs.md) | Eliminate bastion host — SSM Session Manager + EKS migration Jobs |
 
 ---
 
@@ -65,7 +65,8 @@ assuming "why not X":
 | Ingress | AWS Load Balancer Controller (sole ingress path — ADR 0003) |
 | CI/CD | GitHub Actions → Argo CD (GitOps) |
 | Delivery | Rolling (default) + Argo Rollouts canary with Prometheus-driven promotion (ADR 0008) |
-| Host Bootstrap | Ansible (bastion host only — ADR 0006) |
+| Operator Access | AWS Systems Manager Session Manager — no bastion, no SSH (ADR 0010) |
+| Migrations | Kubernetes Jobs on EKS, least-privilege IRSA per job (ADR 0010) |
 | Container Registry | Amazon ECR (ADR 0001) |
 | Document Storage | Amazon S3, system of record (ADR 0009); EFS scoped to shared processing workspace |
 | Security | Checkov · Trivy · Secret Scanning · OWASP ZAP · OPA/Gatekeeper · GuardDuty · Security Hub |
@@ -78,13 +79,10 @@ assuming "why not X":
 ---
 
 ## Project Structure
-
 shieldops-secure-ai-document-intelligence/
 ├── terraform/ # Infrastructure as Code
-│ ├── modules/ # vpc, alb, eks, rds, efs, kms, iam, waf, s3, ecr, messaging
+│ ├── modules/ # vpc, route53, waf, alb, eks, kms, rds, efs, s3, ecr, messaging, iam
 │ └── environments/ # staging, production (GovCloud)
-├── ansible/ # Bastion host bootstrap only (ADR 0006)
-│ └── roles/
 ├── kubernetes/ # K8s Manifests
 │ ├── base/ # core manifests
 │ ├── overlays/ # env-specific patches
@@ -113,22 +111,22 @@ shieldops-secure-ai-document-intelligence/
 │ └── adr/ # Architecture Decision Records
 ├── architecture/ # Architecture diagrams
 └── .github/workflows/ # CI/CD pipeline definitions
-
-
 ---
 
 ## Build Status
 
 | Phase | Focus | Status |
 |---|---|---|
-| 0 | Architecture Decisions — 9 ADRs locked | Done |
-| 1 | Foundation — Terraform VPC (staging + production) | In Progress |
-| 1 | Foundation — Route 53, WAF, ALB, EKS, Aurora, EFS, S3, ECR, messaging, IAM/IRSA | Not Started |
+| 0 | Architecture Decisions — 10 ADRs locked | Done |
+| 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done |
 | 2 | Application — API, auth, ingestion, document-processor, llm-service | Not Started |
 | 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | Not Started |
 | 4 | Security — Checkov, Trivy, ZAP, OPA/Gatekeeper, WAF | Not Started |
 | 5 | Observability — Prometheus, Grafana, OTel, Fluent Bit, CloudWatch | Not Started |
 | 6 | Production Validation — canary, alerts, dashboards, audit trail | Not Started |
+
+All Phase 1 modules pass `terraform validate` in both environments.
+Nothing has been applied against a live AWS account yet.
 
 ---
 
@@ -150,7 +148,3 @@ shieldops-secure-ai-document-intelligence/
 - WAF protection at the ingress ALB
 - Encryption in transit and at rest
 - FedRAMP-aligned security controls
-EOF
-
-
-
