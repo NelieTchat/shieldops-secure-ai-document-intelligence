@@ -17,6 +17,35 @@ module "iam" {
         }
       ]
     }
+
+    ingestion-service = {
+      namespace       = "shieldops-apps"
+      service_account = "ingestion-service"
+      policy_statements = [
+        {
+          sid       = "ConsumeIngestionQueue"
+          actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+          resources = [module.messaging.queue_arn]
+        },
+        {
+          sid       = "SendToProcessingQueue"
+          actions   = ["sqs:SendMessage"]
+          resources = [module.messaging.processing_queue_arn]
+        }
+      ]
+    }
+
+    document-processor = {
+      namespace       = "shieldops-apps"
+      service_account = "document-processor"
+      policy_statements = [
+        {
+          sid       = "ConsumeProcessingQueue"
+          actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+          resources = [module.messaging.processing_queue_arn]
+        }
+      ]
+    }
   }
 
   tags = var.tags
