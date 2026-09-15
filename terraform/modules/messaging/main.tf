@@ -74,3 +74,27 @@ resource "aws_cloudwatch_event_target" "sqs" {
   target_id = "shieldops-ingestion-queue"
   arn       = aws_sqs_queue.this.arn
 }
+# --- Processing queue: Ingestion Service -> Document Processor hand-off ---
+# Not triggered by S3/EventBridge like the queue above — Ingestion Service
+# sends to this one directly via the SQS API once a message passes
+# validation (ADR 0007).
+resource "aws_sqs_queue" "processing_dlq" {
+  name                      = "${var.name}-${var.environment}-processing-dlq"
+  kms_master_key_id         = var.kms_key_id
+  message_retention_seconds = var.message_retention_seconds
+  tags                      = var.tags
+}
+
+resource "aws_sqs_queue" "processing" {
+  name                       = "${var.name}-${var.environment}-processing"
+  kms_master_key_id          = var.kms_key_id
+  visibility_timeout_seconds = var.visibility_timeout_seconds
+  message_retention_seconds  = var.message_retention_seconds
+
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.processing_dlq.arn
+    maxReceiveCount     = var.max_receive_count
+  })
+
+  tags = var.tags
+}

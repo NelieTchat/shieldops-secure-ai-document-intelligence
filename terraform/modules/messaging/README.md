@@ -34,3 +34,21 @@ events ever reach EventBridge and this rule never fires.
 - `queue_url`, `queue_arn` — Ingestion Service polls this queue
 - `dlq_url`, `dlq_arn`
 - `event_rule_arn`
+## Processing Queue (Ingestion Service → Document Processor)
+
+In addition to the upload queue above (triggered by S3 + EventBridge), this
+module also provisions a second queue pair for the next hop in the pipeline:
+
+- **`processing`** — Ingestion Service sends a message here directly via the
+  SQS API once it has validated an upload event (see ADR 0007). Document
+  Processor polls this queue to pick up work.
+- **`processing_dlq`** — catches messages that fail processing repeatedly
+  (`max_receive_count` retries), so a bad file can't block the queue forever.
+
+Unlike the upload queue, nothing publishes to `processing` automatically —
+it's an application-to-application handoff, not an event-driven trigger.
+
+**Outputs added:**
+- `processing_queue_url` — Document Processor's `SQS_QUEUE_URL`
+- `processing_queue_arn` — for IAM policy scoping
+- `processing_dlq_arn` — for IAM policy scoping / DLQ alarms later
