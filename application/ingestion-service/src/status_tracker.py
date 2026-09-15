@@ -1,20 +1,18 @@
+import os
 import psycopg2
 
 DB_CONFIG = dict(
-    host="localhost",
-    port=5432,
-    dbname="shieldops",
-    user="postgres",
-    password="localdevpassword",
+    host=os.environ.get("DB_HOST", "localhost"),
+    port=int(os.environ.get("DB_PORT", "5432")),
+    dbname=os.environ.get("DB_NAME", "shieldops"),
+    user=os.environ.get("DB_USER", "postgres"),
+    password=os.environ.get("DB_PASSWORD", "localdevpassword"),
 )
-
 
 def get_connection():
     return psycopg2.connect(**DB_CONFIG)
 
-
 def ensure_table_exists():
-    """Creates the ingestion_status table if it doesn't already exist."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -31,9 +29,7 @@ def ensure_table_exists():
     conn.close()
     print("Table ready: ingestion_status")
 
-
 def record_status(bucket: str, object_key: str, status: str):
-    """Inserts one row recording what happened to a given upload."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
