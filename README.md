@@ -92,7 +92,7 @@ shieldops-secure-ai-document-intelligence/
 │ └── environments/ # staging, production (GovCloud)
 ├── application/ # ShieldOps application — five deployable services
 │ ├── frontend/ # user-facing web app
-│ ├── api/ # REST entry point: routing, auth, document metadata
+│ ├── api/ # REST entry point: routing, auth, document metadata (subfolders below are the planned layout)
 │ │ ├── auth/
 │ │ ├── documents/
 │ │ ├── routes/
@@ -101,10 +101,10 @@ shieldops-secure-ai-document-intelligence/
 │ │ ├── middleware/
 │ │ └── tests/
 │ ├── ingestion-service/ # intake, malware scan handoff (ADR 0005)
-│ ├── document-processor/ # parse, chunk, embed (ADR 0005)
-│ └── llm-service/ # RAG retrieval + Bedrock (ADR 0002)
-├── agents/ # Agentic Operations (ADR 0011) — separate from application/
-│ └── incident-investigator/ # implementation queued behind Pillar 2
+│ ├── document-processor/ # parse, chunk, embed (ADR 0005); embedding not yet implemented
+│ └── llm-service/ # RAG retrieval + Amazon Bedrock inference (planned)
+├── agents/ # Agentic Operations (ADR 0011), separate from application/ (planned, not yet created)
+│ └── incident-investigator/ # planned, Phase 7
 ├── kubernetes/ # K8s Manifests
 │ ├── base/ # core manifests
 │ ├── overlays/ # env-specific patches
@@ -141,16 +141,25 @@ or ownership actually requires it, not by default.
 | Phase | Focus | Status |
 |---|---|---|
 | 0 | Architecture Decisions — 11 ADRs locked | Done |
-| 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done |
-| 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | Not Started |
+| 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done (validated, not yet applied) |
+| 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | In Progress (ingestion-service, document-processor) |
 | 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | Not Started |
 | 4 | Security — Checkov, Trivy, ZAP, OPA/Gatekeeper, WAF | Not Started |
 | 5 | Observability — Prometheus, Grafana, OTel, Fluent Bit, CloudWatch | Not Started |
 | 6 | Production Validation — canary, alerts, dashboards, audit trail | Not Started |
-| 7 | Agentic Operations — LangGraph Incident Investigator (ADR 0011) | Not Started, queued behind Phase 2–3 |
+| 7 | Agentic Operations — LangGraph Incident Investigator (ADR 0011) | Planned, not started (queued behind Phase 2–3) |
 
 All Phase 1 modules pass `terraform validate` in both environments.
 Nothing has been applied against a live AWS account yet.
+
+### Open implementation decisions (Phase 7)
+
+The MVP-1 invocation path is recorded in ADR 0011's October 8, 2026 amendment.
+This detail is not yet decided and is recorded here so diagrams and docs do
+not present it as accepted design:
+
+- **Report delivery:** TBD. Where the Incident Investigator publishes its
+  findings. The existing Alertmanager -> SNS -> Slack path is separate.
 
 ---
 

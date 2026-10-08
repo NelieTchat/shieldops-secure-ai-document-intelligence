@@ -221,3 +221,23 @@ geographic cross-region inference between `us-gov-west-1` and
   integrations, IAM/RBAC model, testing/evaluation) before AgentCore
   deployment. Not to be treated as a small feature addition when
   estimating timeline.
+
+## Amendment — October 8, 2026: MVP-1 Incident Invocation
+
+For MVP-1, a CloudWatch alarm state change to ALARM is routed through Amazon
+EventBridge to an AWS Lambda invocation handler. The handler maps the alarm to
+the affected workload, constructs the incident context, and invokes the
+Incident Investigator through the AgentCore Runtime `InvokeAgentRuntime` API.
+
+The initial alarm source will use ALB health or HTTP 5XX metrics.
+Alarm-to-workload mappings must be explicitly configured and validated.
+
+The Lambda execution role is restricted to `bedrock-agentcore:InvokeAgentRuntime`
+on the designated AgentCore Runtime ARN in the `aws-us-gov` partition.
+
+Additional alert sources, including Prometheus/Alertmanager, are deferred
+beyond MVP-1. Investigation report delivery remains an open implementation
+decision.
+
+This amendment does not change the accepted orchestration, hosting, model,
+tool-access, or security architecture.
