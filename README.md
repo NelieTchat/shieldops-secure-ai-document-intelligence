@@ -102,7 +102,7 @@ shieldops-secure-ai-document-intelligence/
 │ │ └── tests/
 │ ├── ingestion-service/ # intake, malware scan handoff (ADR 0005)
 │ ├── document-processor/ # parse, chunk, embed (ADR 0005); embeds chunks with Titan Text Embeddings V2
-│ └── llm-service/ # RAG retrieval + Amazon Bedrock inference (planned)
+│ └── llm-service/ # RAG retrieval + Amazon Bedrock inference (first slice built; no auth yet)
 ├── agents/ # Agentic Operations (ADR 0011), separate from application/ (planned, not yet created)
 │ └── incident-investigator/ # planned, Phase 7
 ├── kubernetes/ # K8s Manifests
@@ -142,7 +142,7 @@ or ownership actually requires it, not by default.
 |---|---|---|
 | 0 | Architecture Decisions — 11 ADRs locked | Done |
 | 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done (validated, not yet applied) |
-| 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | In Progress (ingestion-service, document-processor) |
+| 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | In Progress (ingestion-service, document-processor, llm-service first slice) |
 | 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | Not Started |
 | 4 | Security — Checkov, Trivy, ZAP, OPA/Gatekeeper, WAF | Not Started |
 | 5 | Observability — Prometheus, Grafana, OTel, Fluent Bit, CloudWatch | Not Started |
