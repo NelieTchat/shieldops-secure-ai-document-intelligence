@@ -29,6 +29,9 @@ variable "service_roles" {
       effect    = optional(string, "Allow")
       actions   = list(string)
       resources = list(string)
+      # Optional IAM conditions, same shape as IAM JSON:
+      # { StringLike = { "some:key" = ["value"] } }
+      conditions = optional(map(map(list(string))), {})
     }))
   }))
   default = {}

@@ -38,14 +38,21 @@ resource "aws_iam_policy" "this" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      for stmt in each.value.policy_statements : {
+    Statement = concat(
+      [for stmt in each.value.policy_statements : {
         Sid      = stmt.sid
         Effect   = stmt.effect
         Action   = stmt.actions
         Resource = stmt.resources
-      }
-    ]
+      } if length(stmt.conditions) == 0],
+      [for stmt in each.value.policy_statements : {
+        Sid       = stmt.sid
+        Effect    = stmt.effect
+        Action    = stmt.actions
+        Resource  = stmt.resources
+        Condition = stmt.conditions
+      } if length(stmt.conditions) > 0]
+    )
   })
 
   tags = var.tags
