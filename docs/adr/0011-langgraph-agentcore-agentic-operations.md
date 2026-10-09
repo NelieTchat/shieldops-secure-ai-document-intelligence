@@ -1,8 +1,10 @@
 # ADR 0011: LangGraph + Amazon Bedrock AgentCore for Agentic Operations
 
 ## Status
-Accepted (MVP-1 scope only — see Decision). Implementation begins after
-Pillar 1's Terraform foundation, which is now complete (ADR 0001–0010).
+Accepted (MVP-1 scope only — see Decision). Implementation is queued behind
+Phases 2 and 3 of the build plan (application services, then CI/CD), as
+recorded in the README. Pillar 1's Terraform foundation is complete
+(ADR 0001–0010).
 
 ## Context
 Stakeholders proposed extending ShieldOps beyond its original scope
