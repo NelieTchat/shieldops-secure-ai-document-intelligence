@@ -1,3 +1,5 @@
+data "aws_partition" "current" {}
+
 module "iam" {
   source = "../../modules/iam"
 
@@ -43,6 +45,11 @@ module "iam" {
           sid       = "ConsumeProcessingQueue"
           actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
           resources = [module.messaging.processing_queue_arn]
+        },
+        {
+          sid       = "InvokeTitanEmbeddingsV2"
+          actions   = ["bedrock:InvokeModel"]
+          resources = ["arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}::foundation-model/amazon.titan-embed-text-v2:0"]
         }
       ]
     }

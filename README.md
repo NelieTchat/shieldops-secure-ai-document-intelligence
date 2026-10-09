@@ -101,7 +101,7 @@ shieldops-secure-ai-document-intelligence/
 │ │ ├── middleware/
 │ │ └── tests/
 │ ├── ingestion-service/ # intake, malware scan handoff (ADR 0005)
-│ ├── document-processor/ # parse, chunk, embed (ADR 0005); embedding not yet implemented
+│ ├── document-processor/ # parse, chunk, embed (ADR 0005); embeds chunks with Titan Text Embeddings V2
 │ └── llm-service/ # RAG retrieval + Amazon Bedrock inference (planned)
 ├── agents/ # Agentic Operations (ADR 0011), separate from application/ (planned, not yet created)
 │ └── incident-investigator/ # planned, Phase 7

@@ -4,6 +4,7 @@ from metadata import parse_processing_message
 from downloader import download_object
 from extractor import extract_text
 from chunker import chunk_text
+from embedder import embed_chunks
 from chunk_store import ensure_table_exists, save_chunks
 from health import start_health_server
 
@@ -22,7 +23,8 @@ def process_message(body: str) -> bool:
         raw_bytes = download_object(bucket, key)
         text = extract_text(key, raw_bytes)
         chunks = chunk_text(text)
-        save_chunks(bucket, key, chunks)
+        embeddings = embed_chunks(chunks)
+        save_chunks(bucket, key, chunks, embeddings)
         return True
     except Exception as e:
         print(f"Failed to process {bucket}/{key}, leaving message for retry:", e)
