@@ -1,8 +1,11 @@
+import hmac
 import logging
+
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
+import config
 from config import HOST, PORT, TOP_K_DEFAULT, TOP_K_MAX, MAX_QUESTION_CHARS
 from embedder import embed_text
 from retriever import retrieve_chunks
@@ -16,6 +19,8 @@ app = FastAPI(title="ShieldOps LLM Service")
 class QueryRequest(BaseModel):
     question: str = Field(min_length=1, max_length=MAX_QUESTION_CHARS)
     top_k: int = Field(default=TOP_K_DEFAULT, ge=1, le=TOP_K_MAX)
+    # Folder the caller is allowed to search, e.g. "uploads/<user_id>/". Set by the api service.
+    key_prefix: str = Field(min_length=2, max_length=300, pattern=r"^[A-Za-z0-9_./-]+/$")
 
 class Citation(BaseModel):
     bucket: str
@@ -27,19 +32,27 @@ class QueryResponse(BaseModel):
     citations: list[Citation]
     chunks_retrieved: int
 
+def verify_internal_caller(x_internal_token: str | None = Header(default=None)) -> None:
+    expected = config.INTERNAL_API_TOKEN
+    if len(expected) < config.MIN_INTERNAL_TOKEN_CHARS:
+        # Fail closed: an unconfigured service never answers.
+        raise HTTPException(status_code=503, detail="Service is not configured.")
+    if x_internal_token is None or not hmac.compare_digest(
+        x_internal_token.encode(), expected.encode()
+    ):
+        raise HTTPException(status_code=401, detail="Unauthorized.")
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 @app.post("/query", response_model=QueryResponse)
-def query(request: QueryRequest):
-    # NOTE: no authentication or document-level authorization yet.
-    # Synthetic documents only; keep bound to localhost. See README.
+def query(request: QueryRequest, _caller: None = Depends(verify_internal_caller)):
     if not request.question.strip():
         raise HTTPException(status_code=422, detail="question must not be blank")
     try:
         query_vector = embed_text(request.question)
-        chunks = retrieve_chunks(query_vector, request.top_k)
+        chunks = retrieve_chunks(query_vector, request.top_k, request.key_prefix)
         result = generate_answer(request.question, chunks)
     except Exception as e:
         # Log the error type only: never log the question or document text.

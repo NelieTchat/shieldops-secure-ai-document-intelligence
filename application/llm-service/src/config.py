@@ -23,6 +23,11 @@ MAX_QUESTION_CHARS = int(os.environ.get("MAX_QUESTION_CHARS", "2000"))
 # sample (relevant best 0.47-0.56, unrelated best 0.91-0.98). Recalibrate on a real corpus.
 MAX_DISTANCE = float(os.environ.get("MAX_DISTANCE", "0.75"))
 
+# Shared secret that only the api service knows. /query refuses all calls without it.
+# No default on purpose: an unset token means the service answers 503, never "open".
+INTERNAL_API_TOKEN = os.environ.get("INTERNAL_API_TOKEN", "")
+MIN_INTERNAL_TOKEN_CHARS = 32
+
 # Bind to localhost by default: /query has no authentication yet (see README).
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8080"))

@@ -46,3 +46,17 @@ class DocumentOut(BaseModel):
     size_bytes: int
     status: str
     created_at: datetime
+
+class QueryRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=config.QUERY_QUESTION_MAX_CHARS)
+    top_k: int = Field(default=5, ge=1, le=config.QUERY_TOP_K_MAX)
+
+class QueryCitation(BaseModel):
+    bucket: str
+    key: str
+    chunk_index: int
+
+class QueryResponse(BaseModel):
+    answer: str
+    citations: list[QueryCitation]
+    chunks_retrieved: int

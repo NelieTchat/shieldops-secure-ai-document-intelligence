@@ -22,6 +22,13 @@ ALLOWED_EXTENSIONS = {".txt"}  # must match what document-processor can extract
 INGESTION_QUEUE_URL = os.environ.get("INGESTION_QUEUE_URL", "")
 SIMULATE_S3_EVENT = os.environ.get("SIMULATE_S3_EVENT", "false").lower() == "true"
 
+# Shared secret presented to llm-service as X-Internal-Token. No default on purpose.
+INTERNAL_API_TOKEN = os.environ.get("INTERNAL_API_TOKEN", "")
+MIN_INTERNAL_TOKEN_CHARS = 32
+LLM_TIMEOUT_SECONDS = float(os.environ.get("LLM_TIMEOUT_SECONDS", "60"))
+QUERY_TOP_K_MAX = 10
+QUERY_QUESTION_MAX_CHARS = 2000
+
 # Where the api forwards questions (llm-service).
 LLM_SERVICE_URL = os.environ.get("LLM_SERVICE_URL", "http://127.0.0.1:8080")
 
