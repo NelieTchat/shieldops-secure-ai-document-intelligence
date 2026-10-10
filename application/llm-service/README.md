@@ -39,7 +39,12 @@ Converse API) to answer using only those chunks.
   even for an unrelated question.
 - Refusal answers can still carry a citation if the model mentions [1] while saying it
   found nothing relevant.
-- Prompt injection hidden inside document text has not been tested.
+- Prompt injection hidden in document text was tested manually once with a synthetic
+  document (override instruction, fake [9] citation, delimiter-closing tag, requests
+  for the system prompt and a password). The model did not comply and no fake citation
+  was returned. This is a small manual test, not a guarantee. It does not cover other
+  phrasings, or documents that state false facts (data poisoning), which delimiters
+  cannot prevent.
 - The query embedder is a copy of the one in document-processor. Both must stay on the
   same model, dimensions and normalization.
 - No vector index, streaming, conversation history, or reranking.
