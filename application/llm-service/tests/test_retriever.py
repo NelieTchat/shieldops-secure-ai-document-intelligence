@@ -39,3 +39,26 @@ def test_rows_are_mapped_and_query_is_parameterized(monkeypatch):
     assert captured["params"] == ("[0.5,1.0]", "[0.5,1.0]", 3)
     assert "WHERE embedding IS NOT NULL" in captured["sql"]
     assert conn.closed is True
+
+def test_chunks_beyond_max_distance_are_dropped(monkeypatch):
+    class FakeCursor:
+        def execute(self, sql, params):
+            pass
+        def fetchall(self):
+            return [
+                ("b", "near.txt", 0, "close match", 0.40),
+                ("b", "far.txt", 0, "unrelated", 0.90),
+            ]
+        def close(self):
+            pass
+
+    class FakeConn:
+        def cursor(self):
+            return FakeCursor()
+        def close(self):
+            pass
+
+    monkeypatch.setattr(retriever.psycopg2, "connect", lambda **kwargs: FakeConn())
+    monkeypatch.setattr(retriever, "MAX_DISTANCE", 0.75)
+    rows = retriever.retrieve_chunks([0.5], 3)
+    assert [r["key"] for r in rows] == ["near.txt"]

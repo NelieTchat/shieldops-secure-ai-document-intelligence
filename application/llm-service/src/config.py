@@ -19,6 +19,10 @@ TOP_K_DEFAULT = int(os.environ.get("TOP_K_DEFAULT", "5"))
 TOP_K_MAX = int(os.environ.get("TOP_K_MAX", "10"))
 MAX_QUESTION_CHARS = int(os.environ.get("MAX_QUESTION_CHARS", "2000"))
 
+# Cosine distance cutoff: chunks farther than this are dropped. 0.75 was chosen from a small
+# sample (relevant best 0.47-0.56, unrelated best 0.91-0.98). Recalibrate on a real corpus.
+MAX_DISTANCE = float(os.environ.get("MAX_DISTANCE", "0.75"))
+
 # Bind to localhost by default: /query has no authentication yet (see README).
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8080"))

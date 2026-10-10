@@ -35,10 +35,12 @@ Converse API) to answer using only those chunks.
 - NO AUTHENTICATION and NO DOCUMENT-LEVEL AUTHORIZATION. Any caller can retrieve any
   chunk. Use synthetic documents only. Do not expose /query publicly. This gets
   resolved with the api service and its auth.
-- No relevance threshold: nearest-neighbor search always returns the closest chunks,
-  even for an unrelated question.
-- Refusal answers can still carry a citation if the model mentions [1] while saying it
-  found nothing relevant.
+- Relevance cutoff (MAX_DISTANCE, default 0.75) was chosen from six questions on two
+  small documents. It must be recalibrated on a real corpus; questions that are only
+  partly relevant may still slip through or be dropped.
+- For borderline questions, a refusal answer can still carry a citation if the model
+  mentions [1] while saying it found nothing relevant. Clearly unrelated questions now
+  get the fixed no-documents answer with no citations and no model call.
 - Prompt injection hidden in document text was tested manually once with a synthetic
   document (override instruction, fake [9] citation, delimiter-closing tag, requests
   for the system prompt and a password). The model did not comply and no fake citation

@@ -1,5 +1,5 @@
 import psycopg2
-from config import DB_CONFIG, TOP_K_MAX
+from config import DB_CONFIG, TOP_K_MAX, MAX_DISTANCE
 
 def _to_vector_literal(vector: list[float]) -> str:
     return "[" + ",".join(str(x) for x in vector) + "]"
@@ -37,4 +37,5 @@ def retrieve_chunks(query_vector: list[float], top_k: int) -> list[dict]:
             "distance": float(distance),
         }
         for bucket, key, chunk_index, text, distance in rows
+        if float(distance) <= MAX_DISTANCE
     ]
