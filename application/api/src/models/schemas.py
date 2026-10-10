@@ -1,4 +1,8 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
+
+import config
 
 USERNAME_PATTERN = r"^[A-Za-z0-9_.-]{3,50}$"
 
@@ -18,3 +22,27 @@ class TokenResponse(BaseModel):
 class UserOut(BaseModel):
     id: str
     username: str
+
+class DocumentCreate(BaseModel):
+    filename: str = Field(min_length=1, max_length=255)
+    size_bytes: int = Field(gt=0, le=config.MAX_UPLOAD_BYTES)
+
+class UploadTarget(BaseModel):
+    url: str
+    fields: dict[str, str]
+
+class DocumentCreated(BaseModel):
+    id: str
+    filename: str
+    upload: UploadTarget
+
+class CompleteResponse(BaseModel):
+    id: str
+    status: str
+
+class DocumentOut(BaseModel):
+    id: str
+    filename: str
+    size_bytes: int
+    status: str
+    created_at: datetime

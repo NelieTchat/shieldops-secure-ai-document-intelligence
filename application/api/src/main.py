@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -5,7 +6,9 @@ from fastapi import FastAPI
 
 import config
 from db import ensure_tables
-from routes import auth_routes
+from routes import auth_routes, document_routes
+
+logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,6 +18,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ShieldOps API", lifespan=lifespan)
 app.include_router(auth_routes.router)
+app.include_router(document_routes.router)
 
 @app.get("/health")
 def health():
