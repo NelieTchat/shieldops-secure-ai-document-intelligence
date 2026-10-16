@@ -62,10 +62,12 @@ async function enterApp() {
   const me = await api("/auth/me");
   showView(true, me.username);
   setMessage("", "");
+  loadDocuments();
 }
 
 function logout() {
   sessionStorage.removeItem(TOKEN_KEY);
+  clearDocuments();
   showView(false);
   setMessage("Logged out.", "ok");
 }

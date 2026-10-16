@@ -35,10 +35,16 @@
     </section>
 
     <section id="app-view" hidden>
-      <p>Signed in. Upload and questions come next.</p>
+      <h2>Your documents</h2>
+      <form id="upload-form">
+        <input id="file" type="file" accept=".txt,text/plain" required>
+        <button type="submit">Upload</button>
+      </form>
+      <ul id="doc-list"></ul>
     </section>
   </main>
 
   <script src="app.js"></script>
+  <script src="documents.js"></script>
 </body>
 </html>

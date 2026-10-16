@@ -9,3 +9,7 @@ button { padding: 0.5rem 1rem; cursor: pointer; }
 #message.error { color: #b00020; }
 #message.ok { color: #1b6e2a; }
 .note { color: #666; font-size: 0.85rem; }
+h2 { font-size: 1.1rem; }
+#upload-form { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+#upload-form input { width: auto; flex: 1; }
+#doc-list { padding-left: 1.2rem; }
