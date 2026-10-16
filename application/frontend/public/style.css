@@ -1,0 +1,11 @@
+body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; margin-bottom: 1rem; }
+h1 { font-size: 1.4rem; }
+label { display: block; margin-bottom: 0.8rem; }
+input { display: block; width: 100%; padding: 0.5rem; box-sizing: border-box; }
+.row { display: flex; gap: 0.5rem; }
+button { padding: 0.5rem 1rem; cursor: pointer; }
+#message { min-height: 1.5rem; }
+#message.error { color: #b00020; }
+#message.ok { color: #1b6e2a; }
+.note { color: #666; font-size: 0.85rem; }

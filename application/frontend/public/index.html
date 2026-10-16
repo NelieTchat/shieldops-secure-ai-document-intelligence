@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShieldOps</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>ShieldOps</h1>
+    <div id="session" hidden>
+      <span id="whoami"></span>
+      <button id="logout" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <p id="message" role="status"></p>
+
+    <section id="auth-view">
+      <form id="auth-form">
+        <label>Username
+          <input id="username" autocomplete="username" required minlength="3" maxlength="64">
+        </label>
+        <label>Password
+          <input id="password" type="password" autocomplete="current-password" required minlength="12" maxlength="128">
+        </label>
+        <div class="row">
+          <button id="login-btn" type="submit">Log in</button>
+          <button id="register-btn" type="button">Create account</button>
+        </div>
+      </form>
+      <p class="note">Demo environment. Use synthetic data only.</p>
+    </section>
+
+    <section id="app-view" hidden>
+      <p>Signed in. Upload and questions come next.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
