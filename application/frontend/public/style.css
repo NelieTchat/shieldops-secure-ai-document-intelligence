@@ -13,3 +13,7 @@ h2 { font-size: 1.1rem; }
 #upload-form { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
 #upload-form input { width: auto; flex: 1; }
 #doc-list { padding-left: 1.2rem; }
+#query-form { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+#query-form textarea { width: 100%; box-sizing: border-box; padding: 0.5rem; font-family: inherit; }
+#answer { white-space: pre-wrap; margin-top: 1rem; }
+#citations { padding-left: 1.2rem; color: #444; font-size: 0.9rem; }

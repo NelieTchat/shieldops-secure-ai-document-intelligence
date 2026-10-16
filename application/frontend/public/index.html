@@ -41,10 +41,19 @@
         <button type="submit">Upload</button>
       </form>
       <ul id="doc-list"></ul>
+
+      <h2>Ask a question</h2>
+      <form id="query-form">
+        <textarea id="question" rows="3" maxlength="2000" required placeholder="Ask about your uploaded documents"></textarea>
+        <button id="ask-btn" type="submit">Ask</button>
+      </form>
+      <p id="answer"></p>
+      <ul id="citations"></ul>
     </section>
   </main>
 
   <script src="app.js"></script>
   <script src="documents.js"></script>
+  <script src="query.js"></script>
 </body>
 </html>
