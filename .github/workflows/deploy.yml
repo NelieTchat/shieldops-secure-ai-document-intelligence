@@ -1,9 +1,8 @@
 name: ShieldOps Deploy — Terraform Apply + Ansible
 
+# Manual only until the GovCloud account exists (roadmap #39).
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
