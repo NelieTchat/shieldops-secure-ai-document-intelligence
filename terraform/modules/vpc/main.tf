@@ -63,14 +63,15 @@ resource "aws_internet_gateway" "this" {
 # Subnets
 # ---------------------------------------------------------------------------
 
-# checkov:skip=CKV_AWS_130:Public tier intentionally auto-assigns public IPs — required for ALB/NAT ENIs in this 3-tier design.
+# Public subnets do not auto-assign public IPs. NAT gateways use Elastic IPs and
+# internet-facing ALBs get public addresses from the load balancer, not the subnet.
 resource "aws_subnet" "public" {
   for_each = local.public_subnet_cidrs
 
   vpc_id                  = aws_vpc.this.id
   cidr_block              = each.value
   availability_zone       = local.azs[tonumber(each.key)]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-public-${local.azs[tonumber(each.key)]}"

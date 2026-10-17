@@ -23,15 +23,6 @@ resource "aws_security_group_rule" "ingress_postgres" {
   source_security_group_id = var.allowed_security_group_ids[count.index]
 }
 
-resource "aws_security_group_rule" "egress_all" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  security_group_id = aws_security_group.this.id
-  cidr_blocks       = ["0.0.0.0/0"]
-}
-
 # --- Master credentials, generated and stored in Secrets Manager (never in state as plain output) ---
 resource "random_password" "master" {
   length  = 32
