@@ -69,3 +69,21 @@ jobs:
       - name: Validate
         run: terraform validate
         working-directory: terraform/environments/${{ matrix.environment }}
+
+  docker-build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api
+          - llm-service
+          - document-processor
+          - ingestion-service
+          - frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build image (no push)
+        run: docker build -t shieldops/${{ matrix.service }}:ci application/${{ matrix.service }}
