@@ -101,3 +101,16 @@ jobs:
           docker run --rm -v "$PWD:/repo"
           ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
           detect --source /repo --redact --no-banner -v
+
+  trivy-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trivy vulnerabilities and misconfigurations (pinned by digest)
+        run: >
+          docker run --rm -v "$PWD:/repo"
+          ghcr.io/aquasecurity/trivy@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222
+          fs --scanners vuln,misconfig --severity HIGH,CRITICAL --exit-code 1
+          --ignorefile /repo/.trivyignore.yaml --quiet /repo

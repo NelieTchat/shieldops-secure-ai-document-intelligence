@@ -1,0 +1,46 @@
+# Accepted findings. Every entry needs a reason and an expiry date;
+# when it expires the finding fails the build again.
+# Delete an entry as soon as its fix lands.
+misconfigurations:
+  - id: AWS-0164
+    paths:
+      - terraform/modules/vpc/main.tf
+    statement: "Public subnets auto-assign public IPs. Fix planned: set map_public_ip_on_launch to false."
+    expired_at: 2026-11-30
+
+  - id: AWS-0104
+    paths:
+      - terraform/modules/efs/main.tf
+      - terraform/modules/rds/main.tf
+    statement: "Open egress on EFS and RDS security groups. Fix planned: remove egress rules."
+    expired_at: 2026-11-30
+
+  - id: AWS-0039
+    paths:
+      - terraform/modules/eks/main.tf
+    statement: "EKS secrets encryption not yet configured. Fix planned: encryption_config with the KMS module key."
+    expired_at: 2026-11-30
+
+  - id: KSV-0014
+    paths:
+      - kubernetes/base/deployment.yml
+    statement: "Read-only root filesystem not set. Fix planned with the security context work."
+    expired_at: 2026-11-30
+
+  - id: KSV-0118
+    paths:
+      - kubernetes/base/deployment.yml
+    statement: "Default security context. Fix planned with the security context work."
+    expired_at: 2026-11-30
+
+  - id: AWS-0040
+    paths:
+      - terraform/modules/eks/main.tf
+    statement: "EKS endpoint public access. Decision pending: private endpoint vs restricted CIDR (ADR 0010 access model)."
+    expired_at: 2026-12-31
+
+  - id: AWS-0041
+    paths:
+      - terraform/modules/eks/main.tf
+    statement: "EKS public endpoint open CIDR. Same decision as AWS-0040."
+    expired_at: 2026-12-31
