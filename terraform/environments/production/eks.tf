@@ -14,5 +14,7 @@ module "eks" {
   node_min_size       = 2
   node_max_size       = 6
 
+  secrets_kms_key_arn = module.kms.key_arn
+
   tags = var.tags
 }

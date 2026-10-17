@@ -59,3 +59,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "secrets_kms_key_arn" {
+  description = "ARN of the KMS key used for envelope encryption of Kubernetes secrets."
+  type        = string
+}

@@ -2,12 +2,6 @@
 # when it expires the finding fails the build again.
 # Delete an entry as soon as its fix lands.
 misconfigurations:
-  - id: AWS-0039
-    paths:
-      - terraform/modules/eks/main.tf
-    statement: "EKS secrets encryption not yet configured. Fix planned: encryption_config with the KMS module key."
-    expired_at: 2026-11-30
-
   - id: KSV-0014
     paths:
       - kubernetes/base/deployment.yml

@@ -22,6 +22,26 @@ resource "aws_iam_role_policy_attachment" "cluster_policy" {
   policy_arn = "arn:aws-us-gov:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
+data "aws_iam_policy_document" "cluster_kms" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ListGrants",
+      "kms:DescribeKey",
+      "kms:CreateGrant",
+    ]
+    resources = [var.secrets_kms_key_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "cluster_kms" {
+  name   = "secrets-encryption-key"
+  role   = aws_iam_role.cluster.id
+  policy = data.aws_iam_policy_document.cluster_kms.json
+}
+
 # --- EKS cluster ---
 resource "aws_eks_cluster" "this" {
   name     = "${var.cluster_name}-${var.environment}"
@@ -34,6 +54,14 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access  = true
   }
 
+  encryption_config {
+    resources = ["secrets"]
+
+    provider {
+      key_arn = var.secrets_kms_key_arn
+    }
+  }
+
   enabled_cluster_log_types = [
     "api",
     "audit",
@@ -44,7 +72,10 @@ resource "aws_eks_cluster" "this" {
 
   tags = var.tags
 
-  depends_on = [aws_iam_role_policy_attachment.cluster_policy]
+  depends_on = [
+    aws_iam_role_policy_attachment.cluster_policy,
+    aws_iam_role_policy.cluster_kms,
+  ]
 }
 
 # --- OIDC provider (enables IRSA — feeds back into the alb module's role_arn) ---
