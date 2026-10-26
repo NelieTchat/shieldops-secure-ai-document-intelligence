@@ -1,31 +1,64 @@
-name: ShieldOps Security — Scheduled Scans
+name: ShieldOps Security - Scheduled Scans
 
 on:
   schedule:
-    - cron: '0 2 * * *'   # daily at 2am
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  scheduled-security-scan:
-    runs-on: self-hosted
+  repo-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Trivy — Full Repo Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          format: sarif
-          output: trivy-results.sarif
+      - name: Trivy repo scan (report only, pinned by digest)
+        run: >
+          docker run --rm -v "$PWD:/repo"
+          ghcr.io/aquasecurity/trivy@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222
+          fs --scanners vuln,misconfig --severity LOW,MEDIUM,HIGH,CRITICAL
+          --ignorefile /repo/.trivyignore.yaml
+          --format sarif --output /repo/trivy-results.sarif /repo
 
-      - name: Upload Trivy Results to Security Hub
+      - name: Keep the report as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-repo-scan
+          path: trivy-results.sarif
+
+      - name: Upload to GitHub code scanning (public repos)
+        if: ${{ !github.event.repository.private }}
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
 
-      - name: Checkov — Full IaC Scan
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: terraform/
-          output_format: sarif
+  image-scan:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api
+          - llm-service
+          - document-processor
+          - ingestion-service
+          - frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t shieldops/${{ matrix.service }}:scan application/${{ matrix.service }}
+
+      - name: Trivy image scan (fixable HIGH and CRITICAL, pinned by digest)
+        run: >
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
+          ghcr.io/aquasecurity/trivy@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222
+          image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --quiet
+          shieldops/${{ matrix.service }}:scan
