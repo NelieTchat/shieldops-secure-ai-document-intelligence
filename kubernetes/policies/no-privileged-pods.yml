@@ -9,4 +9,4 @@ spec:
       - apiGroups: [""]
         kinds: ["Pod"]
     namespaces:
-      - shieldops
+      - shieldops-apps
