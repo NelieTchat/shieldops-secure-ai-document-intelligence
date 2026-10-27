@@ -1,0 +1,314 @@
+rule_files:
+  - shieldops.rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    name: ApiHighErrorRate fires
+    input_series:
+      - series: 'shieldops_http_requests_total{service="api",method="GET",route="/health",status_class="5xx"}'
+        values: '0+10x20'
+      - series: 'shieldops_http_requests_total{service="api",method="GET",route="/health",status_class="2xx"}'
+        values: '0+90x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: ApiHighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: 'API 5xx rate is above 5 percent'
+  - interval: 1m
+    name: ApiHighErrorRate stays quiet
+    input_series:
+      - series: 'shieldops_http_requests_total{service="api",method="GET",route="/health",status_class="5xx"}'
+        values: '0+1x20'
+      - series: 'shieldops_http_requests_total{service="api",method="GET",route="/health",status_class="2xx"}'
+        values: '0+99x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: ApiHighErrorRate
+        exp_alerts: []
+  - interval: 1m
+    name: TargetDown fires
+    input_series:
+      - series: 'up{job="api",instance="host:9090"}'
+        values: '1 1 1 0x10'
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: TargetDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: 'host:9090'
+              job: 'api'
+            exp_annotations:
+              summary: 'A scrape target is down'
+  - interval: 1m
+    name: TargetDown stays quiet
+    input_series:
+      - series: 'up{job="api",instance="host:9090"}'
+        values: '1x12'
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: TargetDown
+        exp_alerts: []
+  - interval: 1m
+    name: ApiLatencyHigh fires
+    input_series:
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/auth/login",le="0.5"}'
+        values: '0x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/auth/login",le="1"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/auth/login",le="+Inf"}'
+        values: '0+10x30'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: ApiLatencyHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: 'API p95 latency (excluding query) is above 500 ms'
+  - interval: 1m
+    name: ApiLatencyHigh stays quiet
+    input_series:
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/auth/login",le="0.1"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/auth/login",le="0.5"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/auth/login",le="1"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/auth/login",le="+Inf"}'
+        values: '0+10x30'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: ApiLatencyHigh
+        exp_alerts: []
+  - interval: 1m
+    name: QueryLatencyHigh fires
+    input_series:
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/query",le="20"}'
+        values: '0x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/query",le="30"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/query",le="+Inf"}'
+        values: '0+10x30'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: QueryLatencyHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: 'Query p95 latency is above 20 seconds'
+  - interval: 1m
+    name: QueryLatencyHigh stays quiet
+    input_series:
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/query",le="10"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/query",le="20"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/query",le="30"}'
+        values: '0+10x30'
+      - series: 'shieldops_http_request_duration_seconds_bucket{service="api",method="POST",route="/query",le="+Inf"}'
+        values: '0+10x30'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: QueryLatencyHigh
+        exp_alerts: []
+  - interval: 1m
+    name: WorkerFailureRatioHigh fires
+    input_series:
+      - series: 'shieldops_worker_messages_total{service="document-processor",outcome="failed"}'
+        values: '0+2x30'
+      - series: 'shieldops_worker_messages_total{service="document-processor",outcome="processed"}'
+        values: '0+1x30'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: WorkerFailureRatioHigh
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              service: 'document-processor'
+            exp_annotations:
+              summary: 'More than half of a worker messages are failing'
+  - interval: 1m
+    name: WorkerFailureRatioHigh stays quiet
+    input_series:
+      - series: 'shieldops_worker_messages_total{service="document-processor",outcome="failed"}'
+        values: '0x30'
+      - series: 'shieldops_worker_messages_total{service="document-processor",outcome="processed"}'
+        values: '0+2x30'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: WorkerFailureRatioHigh
+        exp_alerts: []
+  - interval: 1m
+    name: PipelineStalled fires
+    input_series:
+      - series: 'shieldops_document_completions_total{outcome="queued"}'
+        values: '0+1x40'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: PipelineStalled
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: 'Documents were uploaded but none were processed in 15 minutes'
+  - interval: 1m
+    name: PipelineStalled stays quiet
+    input_series:
+      - series: 'shieldops_document_completions_total{outcome="queued"}'
+        values: '0+1x40'
+      - series: 'shieldops_worker_messages_total{service="document-processor",outcome="processed"}'
+        values: '0+1x40'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: PipelineStalled
+        exp_alerts: []
+  - interval: 1m
+    name: LlmStageFailureRateHigh fires
+    input_series:
+      - series: 'shieldops_llm_stage_errors_total{stage="embed",error="throttled"}'
+        values: '0+3x20'
+      - series: 'shieldops_llm_stage_duration_seconds_count{stage="embed"}'
+        values: '0+10x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: LlmStageFailureRateHigh
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: 'More than 10 percent of llm-service stage calls are failing'
+  - interval: 1m
+    name: LlmStageFailureRateHigh stays quiet
+    input_series:
+      - series: 'shieldops_llm_stage_errors_total{stage="embed",error="throttled"}'
+        values: '0x20'
+      - series: 'shieldops_llm_stage_duration_seconds_count{stage="embed"}'
+        values: '0+10x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: LlmStageFailureRateHigh
+        exp_alerts: []
+  - interval: 1m
+    name: BedrockThrottling fires
+    input_series:
+      - series: 'shieldops_llm_stage_errors_total{stage="embed",error="throttled"}'
+        values: '0+1x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: BedrockThrottling
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: 'Bedrock is throttling requests'
+  - interval: 1m
+    name: BedrockThrottling stays quiet
+    input_series:
+      - series: 'shieldops_llm_stage_errors_total{stage="embed",error="throttled"}'
+        values: '0x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: BedrockThrottling
+        exp_alerts: []
+  - interval: 1m
+    name: NoAnswerRateHigh fires
+    input_series:
+      - series: 'shieldops_llm_query_outcomes_total{outcome="no_answer"}'
+        values: '0+1x90'
+      - series: 'shieldops_llm_query_outcomes_total{outcome="answered"}'
+        values: '0x90'
+    alert_rule_test:
+      - eval_time: 80m
+        alertname: NoAnswerRateHigh
+        exp_alerts:
+          - exp_labels:
+              severity: info
+            exp_annotations:
+              summary: 'Most queries are getting no answer (RAG quality signal, not an outage)'
+  - interval: 1m
+    name: NoAnswerRateHigh stays quiet
+    input_series:
+      - series: 'shieldops_llm_query_outcomes_total{outcome="no_answer"}'
+        values: '0x90'
+      - series: 'shieldops_llm_query_outcomes_total{outcome="answered"}'
+        values: '0+1x90'
+    alert_rule_test:
+      - eval_time: 80m
+        alertname: NoAnswerRateHigh
+        exp_alerts: []
+  - interval: 1m
+    name: LoginFailureSpike fires
+    input_series:
+      - series: 'shieldops_login_attempts_total{outcome="failure"}'
+        values: '0+10x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: LoginFailureSpike
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: 'Unusual number of failed logins'
+  - interval: 1m
+    name: LoginFailureSpike stays quiet
+    input_series:
+      - series: 'shieldops_login_attempts_total{outcome="failure"}'
+        values: '0+1x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: LoginFailureSpike
+        exp_alerts: []
+  - interval: 1m
+    name: DocumentProbing fires
+    input_series:
+      - series: 'shieldops_document_completions_total{outcome="not_found"}'
+        values: '0+5x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: DocumentProbing
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: 'Repeated attempts to complete documents that do not exist or belong to someone else'
+  - interval: 1m
+    name: DocumentProbing stays quiet
+    input_series:
+      - series: 'shieldops_document_completions_total{outcome="not_found"}'
+        values: '0+1x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: DocumentProbing
+        exp_alerts: []
+  - interval: 1m
+    name: PodCrashLooping fires
+    input_series:
+      - series: 'kube_pod_container_status_waiting_reason{namespace="shieldops-apps",pod="api-abc",container="api",reason="CrashLoopBackOff"}'
+        values: '1x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: PodCrashLooping
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              container: 'api'
+              namespace: 'shieldops-apps'
+              pod: 'api-abc'
+            exp_annotations:
+              summary: 'A shieldops pod is crash looping (needs kube-state-metrics, cluster only)'
+  - interval: 1m
+    name: PodCrashLooping stays quiet
+    input_series:
+      - series: 'kube_pod_container_status_waiting_reason{namespace="shieldops-apps",pod="api-abc",container="api",reason="CrashLoopBackOff"}'
+        values: '0x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: PodCrashLooping
+        exp_alerts: []

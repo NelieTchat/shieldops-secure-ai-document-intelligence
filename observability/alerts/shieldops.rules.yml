@@ -1,0 +1,93 @@
+groups:
+  - name: shieldops-availability
+    rules:
+      - alert: ApiHighErrorRate
+        expr: 'sum(rate(shieldops_http_requests_total{service="api",status_class="5xx"}[5m])) / sum(rate(shieldops_http_requests_total{service="api"}[5m])) > 0.05'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'API 5xx rate is above 5 percent'
+      - alert: TargetDown
+        expr: 'up == 0'
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'A scrape target is down'
+      - alert: ApiLatencyHigh
+        expr: 'histogram_quantile(0.95, sum by (le) (rate(shieldops_http_request_duration_seconds_bucket{service="api",route!="/query"}[5m]))) > 0.5'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'API p95 latency (excluding query) is above 500 ms'
+      - alert: QueryLatencyHigh
+        expr: 'histogram_quantile(0.95, sum by (le) (rate(shieldops_http_request_duration_seconds_bucket{service="api",route="/query"}[5m]))) > 20'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Query p95 latency is above 20 seconds'
+  - name: shieldops-pipeline
+    rules:
+      - alert: WorkerFailureRatioHigh
+        expr: '(sum by (service) (increase(shieldops_worker_messages_total{outcome=~"failed|dlq_failed"}[10m])) / sum by (service) (increase(shieldops_worker_messages_total[10m]))) > 0.5 and sum by (service) (increase(shieldops_worker_messages_total[10m])) >= 3'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'More than half of a worker messages are failing'
+      - alert: PipelineStalled
+        expr: 'sum(increase(shieldops_document_completions_total{outcome=~"queued|uploaded"}[15m])) > 0 and (sum(increase(shieldops_worker_messages_total{service="document-processor",outcome="processed"}[15m])) or vector(0)) == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Documents were uploaded but none were processed in 15 minutes'
+      - alert: LlmStageFailureRateHigh
+        expr: 'sum(increase(shieldops_llm_stage_errors_total[5m])) / sum(increase(shieldops_llm_stage_duration_seconds_count[5m])) > 0.10'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'More than 10 percent of llm-service stage calls are failing'
+      - alert: BedrockThrottling
+        expr: '(sum(increase(shieldops_llm_stage_errors_total{error="throttled"}[10m])) or vector(0)) + (sum(increase(shieldops_worker_stage_errors_total{error="throttled"}[10m])) or vector(0)) > 3'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Bedrock is throttling requests'
+      - alert: NoAnswerRateHigh
+        expr: 'sum(increase(shieldops_llm_query_outcomes_total{outcome="no_answer"}[30m])) / sum(increase(shieldops_llm_query_outcomes_total[30m])) > 0.8 and sum(increase(shieldops_llm_query_outcomes_total[30m])) >= 10'
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: 'Most queries are getting no answer (RAG quality signal, not an outage)'
+  - name: shieldops-security
+    rules:
+      - alert: LoginFailureSpike
+        expr: 'sum(increase(shieldops_login_attempts_total{outcome="failure"}[5m])) > 20'
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Unusual number of failed logins'
+      - alert: DocumentProbing
+        expr: 'sum(increase(shieldops_document_completions_total{outcome="not_found"}[5m])) > 10'
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Repeated attempts to complete documents that do not exist or belong to someone else'
+  - name: shieldops-kubernetes
+    rules:
+      - alert: PodCrashLooping
+        expr: 'max by (namespace, pod, container) (kube_pod_container_status_waiting_reason{namespace="shieldops-apps",reason="CrashLoopBackOff"}) == 1'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'A shieldops pod is crash looping (needs kube-state-metrics, cluster only)'
