@@ -36,6 +36,38 @@ module "iam" {
       ]
     }
 
+    api = {
+      namespace       = "shieldops-apps"
+      service_account = "api"
+      policy_statements = [
+        {
+          sid       = "PresignAndCheckUploads"
+          actions   = ["s3:PutObject", "s3:GetObject"]
+          resources = ["${module.s3.bucket_arn}/uploads/*"]
+        },
+        {
+          sid       = "ListUploadsPrefixForNotFoundAnswers"
+          actions   = ["s3:ListBucket"]
+          resources = [module.s3.bucket_arn]
+          conditions = {
+            StringLike = {
+              "s3:prefix" = ["uploads/*"]
+            }
+          }
+        },
+        {
+          sid       = "UseDocumentsBucketKey"
+          actions   = ["kms:GenerateDataKey", "kms:Decrypt"]
+          resources = [module.kms.key_arn]
+        },
+        {
+          sid       = "ReadAuroraCredential"
+          actions   = ["secretsmanager:GetSecretValue"]
+          resources = [module.rds.secret_arn]
+        }
+      ]
+    }
+
     ingestion-service = {
       namespace       = "shieldops-apps"
       service_account = "ingestion-service"
