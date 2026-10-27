@@ -58,6 +58,7 @@ assuming "why not X":
 | [0009](docs/adr/0009-s3-system-of-record-for-documents.md) | Amazon S3 as the system of record for documents |
 | [0010](docs/adr/0010-eliminate-bastion-ssm-and-eks-jobs.md) | Eliminate bastion host — SSM Session Manager + EKS migration Jobs |
 | [0011](docs/adr/0011-langgraph-agentcore-agentic-operations.md) | LangGraph + Bedrock AgentCore for agentic operations (MVP-1 scope) |
+| [0012](docs/adr/0012-private-eks-endpoint-gitops-deploys.md) | Private EKS API endpoint; deploy by GitOps pull, not pipeline push |
 
 ---
 
@@ -140,7 +141,7 @@ or ownership actually requires it, not by default.
 
 | Phase | Focus | Status |
 |---|---|---|
-| 0 | Architecture Decisions — 11 ADRs locked | Done |
+| 0 | Architecture Decisions — 12 ADRs locked | Done |
 | 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done (validated, not yet applied) |
 | 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | In Progress (ingestion-service, document-processor, llm-service first slice) |
 | 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | Not Started |

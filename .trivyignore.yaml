@@ -1,15 +1,4 @@
 # Accepted findings. Every entry needs a reason and an expiry date;
 # when it expires the finding fails the build again.
 # Delete an entry as soon as its fix lands.
-misconfigurations:
-  - id: AWS-0040
-    paths:
-      - terraform/modules/eks/main.tf
-    statement: "EKS endpoint public access. Decision pending: private endpoint vs restricted CIDR (ADR 0010 access model)."
-    expired_at: 2026-12-31
-
-  - id: AWS-0041
-    paths:
-      - terraform/modules/eks/main.tf
-    statement: "EKS public endpoint open CIDR. Same decision as AWS-0040."
-    expired_at: 2026-12-31
+misconfigurations: []
