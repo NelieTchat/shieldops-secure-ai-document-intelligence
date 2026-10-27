@@ -70,11 +70,11 @@ Environment variables:
 |--------------------------|----------------------|-----------------------------------|
 | `AWS_REGION`             | `us-gov-west-1`      | AWS region for SQS/S3 clients     |
 | `PROCESSING_QUEUE_URL`   | *(empty)*            | Queue to consume from             |
-| `DB_HOST`                | `localhost`          | Postgres host                     |
-| `DB_PORT`                | `5432`               | Postgres port                     |
-| `DB_NAME`                | `shieldops`          | Postgres database name            |
-| `DB_USER`                | `postgres`           | Postgres user                     |
-| `DB_PASSWORD`            | `localdevpassword`   | Postgres password                 |
+| `DB_HOST`                | *(required)*         | Postgres host                     |
+| `DB_PORT`                | *(required)*         | Postgres port                     |
+| `DB_NAME`                | *(required)*         | Postgres database name            |
+| `DB_USER`                | *(required)*         | Postgres user                     |
+| `DB_PASSWORD`            | *(required)*         | Postgres password; the service refuses to start if any DB_* is unset |
 | `BEDROCK_REGION`         | same as `AWS_REGION` | Region for Bedrock embeddings     |
 | `EMBEDDING_MODEL_ID`     | `amazon.titan-embed-text-v2:0` | Embedding model         |
 | `EMBEDDING_DIMENSIONS`   | `1024`               | Vector size (must match column)   |

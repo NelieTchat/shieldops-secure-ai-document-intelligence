@@ -90,4 +90,6 @@ if __name__ == "__main__":
     start_metrics_server(config.METRICS_HOST, config.METRICS_PORT)
     # access_log off: uvicorn's access log prints full URLs. The request middleware
     # logs a safe, structured line instead.
+    from config import require_db_config
+    require_db_config()  # refuse to start without explicit database settings
     uvicorn.run(app, host=HOST, port=PORT, access_log=False, log_config=None)

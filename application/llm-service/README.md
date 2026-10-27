@@ -65,7 +65,7 @@ Converse API) to answer using only those chunks.
 | TOP_K_DEFAULT / TOP_K_MAX | 5 / 10 | Retrieval limits |
 | MAX_QUESTION_CHARS | 2000 | Question length cap |
 | HOST / PORT | 127.0.0.1 / 8080 | Bind address |
-| DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD | local dev values | Postgres connection |
+| DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD | required, no defaults | Postgres connection; the service refuses to start if any is unset |
 
 GENERATION_MODEL_ID has no default because the exact ID differs by partition and
 account. In the commercial sandbox we used the US geographic inference profile for
