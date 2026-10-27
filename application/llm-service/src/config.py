@@ -44,3 +44,7 @@ print("Region:", AWS_REGION, "| Bedrock region:", BEDROCK_REGION)
 print("Embedding model:", EMBEDDING_MODEL_ID, "| dims:", EMBEDDING_DIMENSIONS)
 print("Generation model:", GENERATION_MODEL_ID or "(NOT SET - /query will refuse to answer)")
 print("Bind:", HOST, PORT)
+
+# Prometheus metrics are served on a separate, internal-only port (ADR 0013).
+METRICS_HOST = os.environ.get("METRICS_HOST", "127.0.0.1")
+METRICS_PORT = int(os.environ.get("METRICS_PORT", "9090"))

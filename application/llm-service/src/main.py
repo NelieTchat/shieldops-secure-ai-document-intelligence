@@ -10,11 +10,20 @@ from config import HOST, PORT, TOP_K_DEFAULT, TOP_K_MAX, MAX_QUESTION_CHARS
 from embedder import embed_text
 from retriever import retrieve_chunks
 from generator import generate_answer
+from observability import (
+    CHUNKS_RETRIEVED,
+    QUERY_OUTCOMES,
+    RequestObservabilityMiddleware,
+    configure_logging,
+    observe_stage,
+    start_metrics_server,
+)
 
-logging.basicConfig(level=logging.INFO)
+configure_logging()
 log = logging.getLogger("llm-service")
 
 app = FastAPI(title="ShieldOps LLM Service")
+app.add_middleware(RequestObservabilityMiddleware)
 
 class QueryRequest(BaseModel):
     question: str = Field(min_length=1, max_length=MAX_QUESTION_CHARS)
@@ -51,14 +60,24 @@ def query(request: QueryRequest, _caller: None = Depends(verify_internal_caller)
     if not request.question.strip():
         raise HTTPException(status_code=422, detail="question must not be blank")
     try:
-        query_vector = embed_text(request.question)
-        chunks = retrieve_chunks(query_vector, request.top_k, request.key_prefix)
-        result = generate_answer(request.question, chunks)
+        with observe_stage("embed"):
+            query_vector = embed_text(request.question)
+        with observe_stage("retrieve"):
+            chunks = retrieve_chunks(query_vector, request.top_k, request.key_prefix)
+        if chunks:
+            with observe_stage("generate"):
+                result = generate_answer(request.question, chunks)
+        else:
+            # No model call happens without context, so it is not timed as "generate".
+            result = generate_answer(request.question, chunks)
     except Exception as e:
+        QUERY_OUTCOMES.labels("error").inc()
         # Log the error type only: never log the question or document text.
         log.error("query failed: %s", type(e).__name__)
         raise HTTPException(status_code=502, detail="Failed to answer the query.")
 
+    CHUNKS_RETRIEVED.observe(len(chunks))
+    QUERY_OUTCOMES.labels("answered" if result["citations"] else "no_answer").inc()
     log.info("query ok: top_k=%d retrieved=%d cited=%d",
              request.top_k, len(chunks), len(result["citations"]))
     return QueryResponse(
@@ -68,4 +87,7 @@ def query(request: QueryRequest, _caller: None = Depends(verify_internal_caller)
     )
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=HOST, port=PORT)
+    start_metrics_server(config.METRICS_HOST, config.METRICS_PORT)
+    # access_log off: uvicorn's access log prints full URLs. The request middleware
+    # logs a safe, structured line instead.
+    uvicorn.run(app, host=HOST, port=PORT, access_log=False, log_config=None)
