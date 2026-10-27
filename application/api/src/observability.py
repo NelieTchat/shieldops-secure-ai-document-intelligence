@@ -111,3 +111,21 @@ def start_metrics_server(host, port):
     """Serve /metrics on its own port so the public listener never exposes it."""
     start_http_server(port, addr=host)
     logging.getLogger("shieldops.observability").info("metrics server started on %s:%s", host, port)
+
+
+# Business metrics (ADR 0013). Outcome labels only: never usernames, ids or text.
+LOGIN_ATTEMPTS = Counter(
+    "shieldops_login_attempts_total",
+    "Login attempts by outcome. Unknown user and wrong password are both 'failure'.",
+    ["outcome"],
+)
+REGISTRATIONS = Counter(
+    "shieldops_registrations_total",
+    "Registration attempts by outcome.",
+    ["outcome"],
+)
+QUERY_OUTCOMES = Counter(
+    "shieldops_query_outcomes_total",
+    "Query outcomes: answered (has citations), no_answer, unavailable, not_configured.",
+    ["outcome"],
+)
