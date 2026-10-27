@@ -14,6 +14,7 @@ configure_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     config.require_jwt_secret()  # refuse to start with a missing or weak secret
+    config.require_db_config()  # refuse to start without explicit database settings
     ensure_tables()
     yield
 

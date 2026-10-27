@@ -1,8 +1,8 @@
 import psycopg2
-from config import DB_CONFIG
+from config import require_db_config
 
 def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
+    return psycopg2.connect(**require_db_config())
 
 def ensure_tables():
     conn = get_connection()

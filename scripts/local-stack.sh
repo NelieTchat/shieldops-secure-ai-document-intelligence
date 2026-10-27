@@ -41,13 +41,13 @@ start_stack() {
 
   docker run -d --rm --name shieldops-llm -p 127.0.0.1:8080:8080 -p 127.0.0.1:9103:9090 \
     -e AWS_REGION -e HOST=0.0.0.0 -e METRICS_HOST=0.0.0.0 -e GENERATION_MODEL_ID -e INTERNAL_API_TOKEN \
-    -e DB_HOST=host.docker.internal "${aws_args[@]}" shieldops/llm-service:dev > /dev/null
+    -e DB_HOST=host.docker.internal -e DB_PORT -e DB_NAME -e DB_USER -e DB_PASSWORD "${aws_args[@]}" shieldops/llm-service:dev > /dev/null
   docker run -d --rm --name shieldops-ingest -p 127.0.0.1:9102:9090 \
     -e AWS_REGION -e INGESTION_QUEUE_URL -e PROCESSING_QUEUE_URL -e METRICS_HOST=0.0.0.0 \
-    -e DB_HOST=host.docker.internal "${aws_args[@]}" shieldops/ingestion-service:dev > /dev/null
+    -e DB_HOST=host.docker.internal -e DB_PORT -e DB_NAME -e DB_USER -e DB_PASSWORD "${aws_args[@]}" shieldops/ingestion-service:dev > /dev/null
   docker run -d --rm --name shieldops-docproc -p 127.0.0.1:9101:9090 \
     -e AWS_REGION -e PROCESSING_QUEUE_URL -e METRICS_HOST=0.0.0.0 \
-    -e DB_HOST=host.docker.internal "${aws_args[@]}" shieldops/document-processor:dev > /dev/null
+    -e DB_HOST=host.docker.internal -e DB_PORT -e DB_NAME -e DB_USER -e DB_PASSWORD "${aws_args[@]}" shieldops/document-processor:dev > /dev/null
 
   (
     cd "$API"
