@@ -59,6 +59,7 @@ start_stack() {
   then
     docker run -d --rm --name shieldops-prometheus -p 127.0.0.1:9095:9090 \
       -v "$REPO/observability/local/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+      -v "$REPO/observability/alerts:/etc/prometheus/alerts:ro" \
       "$PROMETHEUS_IMAGE" > /dev/null
   fi
 
