@@ -143,9 +143,9 @@ or ownership actually requires it, not by default.
 |---|---|---|
 | 0 | Architecture Decisions — 12 ADRs locked | Done |
 | 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done (validated, not yet applied) |
-| 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | In Progress (ingestion-service, document-processor, llm-service first slice) |
-| 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | Not Started |
-| 4 | Security — Checkov, Trivy, ZAP, OPA/Gatekeeper, WAF | Not Started |
+| 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | In Progress (all five services built and verified end to end in the sandbox; sandbox-only shims and hard-coded DB defaults still to remove) |
+| 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | In Progress (CI running: tests, Terraform validation, image builds, secret and vulnerability scanning; CD waits on the GovCloud account) |
+| 4 | Security — Trivy, Gitleaks, ZAP, OPA/Gatekeeper, WAF | In Progress (Trivy and Gitleaks gates, daily scans, hardened non-root images and manifests, private EKS endpoint done; ZAP and runtime policy enforcement pending) |
 | 5 | Observability — Prometheus, Grafana, OTel, Fluent Bit, CloudWatch | Not Started |
 | 6 | Production Validation — canary, alerts, dashboards, audit trail | Not Started |
 | 7 | Agentic Operations — LangGraph Incident Investigator (ADR 0011) | Planned, not started (queued behind Phase 2–3) |

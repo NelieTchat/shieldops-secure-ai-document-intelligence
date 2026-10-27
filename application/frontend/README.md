@@ -28,7 +28,7 @@ The sandbox bucket needs a CORS rule allowing POST from http://127.0.0.1:8081 fo
 
 ## Configuration
 
-The proxy target is hard-coded in `nginx.conf` as `host.docker.internal:8001` for local Docker. In Kubernetes it should point at the api Service, and TLS should terminate at the ALB.
+The proxy target comes from the `API_UPSTREAM` environment variable. nginx renders `default.conf.template` into its config at startup. The default is `http://host.docker.internal:8001` for local Docker, and Kubernetes sets `http://api:8000` in the frontend ConfigMap. nginx resolves that name once at startup, so the api Service must exist before the frontend starts, or the frontend restarts until it does. The container also runs with a read-only root filesystem when `/tmp` and `/etc/nginx/conf.d` are writable (emptyDir volumes in Kubernetes). TLS should terminate at the ALB.
 
 ## Known limitations
 
