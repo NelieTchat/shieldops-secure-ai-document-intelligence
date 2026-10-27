@@ -115,3 +115,23 @@ jobs:
           ghcr.io/aquasecurity/trivy@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222
           fs --scanners vuln,misconfig --severity HIGH,CRITICAL --exit-code 1
           --ignorefile /repo/.trivyignore.yaml --quiet /repo
+
+  alert-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: promtool check rules (pinned by digest)
+        run: >
+          docker run --rm --entrypoint promtool
+          -v "$PWD/observability/alerts:/w:ro"
+          prom/prometheus@sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2
+          check rules /w/shieldops.rules.yml
+
+      - name: promtool unit tests (pinned by digest)
+        run: >
+          docker run --rm --entrypoint promtool
+          -v "$PWD/observability/alerts:/w:ro"
+          prom/prometheus@sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2
+          test rules /w/shieldops.rules.test.yml
