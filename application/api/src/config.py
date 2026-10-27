@@ -55,3 +55,7 @@ def require_jwt_secret() -> str:
 print("Region:", AWS_REGION, "| bucket:", DOCUMENTS_BUCKET or "(not set)")
 print("JWT secret:", "set" if JWT_SECRET else "NOT SET - login will be refused")
 print("Bind:", HOST, PORT)
+
+# Prometheus metrics are served on a separate, internal-only port (ADR 0013).
+METRICS_HOST = os.environ.get("METRICS_HOST", "127.0.0.1")
+METRICS_PORT = int(os.environ.get("METRICS_PORT", "9090"))

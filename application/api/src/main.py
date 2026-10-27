@@ -6,9 +6,10 @@ from fastapi import FastAPI
 
 import config
 from db import ensure_tables
+from observability import RequestObservabilityMiddleware, configure_logging, start_metrics_server
 from routes import auth_routes, document_routes, query_routes
 
-logging.basicConfig(level=logging.INFO)
+configure_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="ShieldOps API", lifespan=lifespan)
+app.add_middleware(RequestObservabilityMiddleware)
 app.include_router(auth_routes.router)
 app.include_router(document_routes.router)
 app.include_router(query_routes.router)
@@ -26,4 +28,7 @@ def health():
     return {"status": "ok"}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=config.HOST, port=config.PORT)
+    start_metrics_server(config.METRICS_HOST, config.METRICS_PORT)
+    # access_log off: uvicorn's access log prints full URLs (document IDs, query strings).
+    # The request middleware logs a safe, structured line instead.
+    uvicorn.run(app, host=config.HOST, port=config.PORT, access_log=False, log_config=None)
