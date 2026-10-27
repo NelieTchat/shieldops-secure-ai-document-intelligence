@@ -3,7 +3,7 @@ kind: ServiceAccount
 metadata:
   name: api
   annotations:
-    # Role does not exist in Terraform yet (roadmap #57).
+    # Replaced per environment in the overlay (IRSA role created by Terraform).
     eks.amazonaws.com/role-arn: arn:aws-us-gov:iam::ACCOUNT_ID:role/REPLACE_IN_OVERLAY
 automountServiceAccountToken: false
 ---
