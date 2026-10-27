@@ -11,3 +11,4 @@ six==1.17.0
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 urllib3==2.8.0
+prometheus_client==0.26.0
