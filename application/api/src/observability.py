@@ -129,3 +129,16 @@ QUERY_OUTCOMES = Counter(
     "Query outcomes: answered (has citations), no_answer, unavailable, not_configured.",
     ["outcome"],
 )
+
+# Document lifecycle metrics (ADR 0013). Outcome labels only: never filenames,
+# document ids or user ids.
+UPLOADS_PREPARED = Counter(
+    "shieldops_document_uploads_prepared_total",
+    "Upload preparation outcomes: created, rejected, not_configured, error.",
+    ["outcome"],
+)
+DOCUMENT_COMPLETIONS = Counter(
+    "shieldops_document_completions_total",
+    "Upload completion outcomes: queued, uploaded, not_found, missing_file, not_configured, error.",
+    ["outcome"],
+)
