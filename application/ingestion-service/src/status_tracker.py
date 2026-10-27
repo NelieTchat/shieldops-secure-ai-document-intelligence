@@ -1,16 +1,27 @@
 import os
 import psycopg2
 
+# No defaults on purpose: a missing database setting must stop the service. It must
+# never fall back to a guessable password, or to a local socket (an empty host).
 DB_CONFIG = dict(
-    host=os.environ.get("DB_HOST", "localhost"),
-    port=int(os.environ.get("DB_PORT", "5432")),
-    dbname=os.environ.get("DB_NAME", "shieldops"),
-    user=os.environ.get("DB_USER", "postgres"),
-    password=os.environ.get("DB_PASSWORD", "localdevpassword"),
+    host=os.environ.get("DB_HOST", ""),
+    port=os.environ.get("DB_PORT", ""),
+    dbname=os.environ.get("DB_NAME", ""),
+    user=os.environ.get("DB_USER", ""),
+    password=os.environ.get("DB_PASSWORD", ""),
 )
+_DB_ENV_NAMES = dict(host="DB_HOST", port="DB_PORT", dbname="DB_NAME", user="DB_USER", password="DB_PASSWORD")
+
+
+def require_db_config() -> dict:
+    """Return connection settings, or raise naming the missing variables (never values)."""
+    missing = [_DB_ENV_NAMES[key] for key, value in DB_CONFIG.items() if not value]
+    if missing:
+        raise RuntimeError("Missing required database settings: " + ", ".join(missing))
+    return {**DB_CONFIG, "port": int(DB_CONFIG["port"])}
 
 def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
+    return psycopg2.connect(**require_db_config())
 
 def ensure_table_exists():
     conn = get_connection()

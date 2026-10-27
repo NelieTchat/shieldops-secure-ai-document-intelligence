@@ -1,5 +1,5 @@
 import psycopg2
-from config import DB_CONFIG, TOP_K_MAX, MAX_DISTANCE
+from config import require_db_config, TOP_K_MAX, MAX_DISTANCE
 
 def _to_vector_literal(vector: list[float]) -> str:
     return "[" + ",".join(str(x) for x in vector) + "]"
@@ -12,7 +12,7 @@ def retrieve_chunks(query_vector: list[float], top_k: int, key_prefix: str) -> l
         raise ValueError("key_prefix must be a non-empty folder prefix ending in '/'.")
 
     literal = _to_vector_literal(query_vector)
-    conn = psycopg2.connect(**DB_CONFIG)
+    conn = psycopg2.connect(**require_db_config())
     try:
         cur = conn.cursor()
         cur.execute(

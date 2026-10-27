@@ -1,3 +1,9 @@
+import os
+os.environ.setdefault("DB_HOST", "localhost")
+os.environ.setdefault("DB_PORT", "5432")
+os.environ.setdefault("DB_NAME", "shieldops_test")
+os.environ.setdefault("DB_USER", "test-user")
+os.environ.setdefault("DB_PASSWORD", "test-password-only")
 import sys
 from pathlib import Path
 

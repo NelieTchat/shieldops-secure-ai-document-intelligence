@@ -1,8 +1,8 @@
 import psycopg2
-from config import DB_CONFIG, EMBEDDING_DIMENSIONS
+from config import require_db_config, EMBEDDING_DIMENSIONS
 
 def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
+    return psycopg2.connect(**require_db_config())
 
 def ensure_table_exists():
     conn = get_connection()
