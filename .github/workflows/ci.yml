@@ -21,6 +21,7 @@ jobs:
           - api
           - llm-service
           - document-processor
+          - ingestion-service
     defaults:
       run:
         working-directory: application/${{ matrix.service }}
