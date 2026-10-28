@@ -75,3 +75,19 @@ find in the repo; confirm before relying on them.
 - [ ] Run the migration, then the `user-seed` Job; check the logs show counts only.
 - [ ] Run the end-to-end flow against the real stack (upload, process, query, ownership).
 - [ ] Check CI is green on the commit that was deployed.
+
+## 7. Deploy workflow setup
+
+`deploy.yml` was replaced by `terraform-plan.yml` (pull requests, read-only) and
+`terraform-apply.yml` (manual, reviewer-gated). Both are inactive until configured:
+
+- [ ] Create an OIDC identity provider and two IAM roles in the account: a read-only
+      plan role and an apply role, each trusting this repository only.
+- [ ] Set the repository variable `AWS_PLAN_ROLE_ARN` (and `AWS_REGION` if needed).
+- [ ] Create GitHub environments `staging` and `production` with required reviewers,
+      and set `AWS_APPLY_ROLE_ARN` on each.
+- [ ] Configure the state backend first (section 3).
+- [ ] Removed on purpose: the Ansible deploy (ADRs 0006, 0010, 0012), the unpinned
+      Trivy image scan (CI already scans), OWASP ZAP and the smoke-test step. Add
+      post-deploy DAST and smoke tests once a real stack exists.
+- [ ] Plan logs of a public repository are public; consider making it private.

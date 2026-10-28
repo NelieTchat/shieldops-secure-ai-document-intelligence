@@ -1,0 +1,59 @@
+name: ShieldOps Terraform Plan
+
+# Plans only, never applies. Runs on pull requests that change Terraform, with a
+# read-only role over short-lived OIDC credentials (no stored AWS keys).
+# Inactive until the repository variable AWS_PLAN_ROLE_ARN exists, so it is safe to
+# merge before the GovCloud account and the state backend are ready.
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  plan:
+    if: ${{ vars.AWS_PLAN_ROLE_ARN != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - staging
+          - production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_PLAN_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-gov-west-1' }}
+
+      - name: Init
+        run: terraform init -input=false
+        working-directory: terraform/environments/${{ matrix.environment }}
+
+      - name: Plan
+        run: terraform plan -input=false -lock=false -no-color | tee plan.txt
+        working-directory: terraform/environments/${{ matrix.environment }}
+
+      - name: Show the plan summary
+        run: |
+          {
+            echo "### Plan for ${{ matrix.environment }}"
+            echo '```'
+            tail -n 150 plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+        working-directory: terraform/environments/${{ matrix.environment }}

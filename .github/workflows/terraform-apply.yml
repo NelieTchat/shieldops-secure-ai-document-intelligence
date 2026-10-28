@@ -1,0 +1,113 @@
+name: ShieldOps Terraform Apply
+
+# Manual only. Two jobs: the plan job shows what will change; the apply job waits for
+# a reviewer on the protected GitHub environment of the same name, then re-plans and
+# refuses to continue if the change summary differs from the one that was reviewed.
+# The plan file is never uploaded as an artifact (this repository is public).
+#
+# One-time setup:
+#   - repository variable AWS_PLAN_ROLE_ARN (read-only role) and optional AWS_REGION
+#   - GitHub environments "staging" and "production" with required reviewers, each
+#     holding an environment variable AWS_APPLY_ROLE_ARN (the apply role)
+#   - the S3 state backend configured in terraform/environments/*/main.tf
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to apply
+        type: choice
+        required: true
+        options:
+          - staging
+          - production
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-apply-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: ${{ vars.AWS_PLAN_ROLE_ARN != '' }}
+    runs-on: ubuntu-latest
+    outputs:
+      summary: ${{ steps.summary.outputs.line }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC, read-only)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_PLAN_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-gov-west-1' }}
+
+      - name: Init
+        run: terraform init -input=false
+        working-directory: terraform/environments/${{ inputs.environment }}
+
+      - name: Plan
+        run: terraform plan -input=false -lock=false -no-color | tee plan.txt
+        working-directory: terraform/environments/${{ inputs.environment }}
+
+      - name: Record the change summary
+        id: summary
+        run: |
+          LINE=$(grep -E '^(Plan:|No changes)' plan.txt | head -1)
+          echo "line=${LINE}" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Plan for ${{ inputs.environment }}"
+            echo "**${LINE}**"
+            echo '```'
+            tail -n 150 plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+        working-directory: terraform/environments/${{ inputs.environment }}
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC, apply role)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-gov-west-1' }}
+
+      - name: Init
+        run: terraform init -input=false
+        working-directory: terraform/environments/${{ inputs.environment }}
+
+      - name: Re-plan and compare with the reviewed summary
+        env:
+          REVIEWED: ${{ needs.plan.outputs.summary }}
+        run: |
+          terraform plan -input=false -no-color -out=tfplan | tee plan.txt
+          NOW=$(grep -E '^(Plan:|No changes)' plan.txt | head -1)
+          if [ "$NOW" != "$REVIEWED" ]
+          then
+            echo "The plan changed since it was reviewed. Reviewed: $REVIEWED / Now: $NOW"
+            exit 1
+          fi
+        working-directory: terraform/environments/${{ inputs.environment }}
+
+      - name: Apply the saved plan
+        run: terraform apply -input=false tfplan
+        working-directory: terraform/environments/${{ inputs.environment }}
