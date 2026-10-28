@@ -59,6 +59,7 @@ assuming "why not X":
 | [0010](docs/adr/0010-eliminate-bastion-ssm-and-eks-jobs.md) | Eliminate bastion host — SSM Session Manager + EKS migration Jobs |
 | [0011](docs/adr/0011-langgraph-agentcore-agentic-operations.md) | LangGraph + Bedrock AgentCore for agentic operations (MVP-1 scope) |
 | [0012](docs/adr/0012-private-eks-endpoint-gitops-deploys.md) | Private EKS API endpoint; deploy by GitOps pull, not pipeline push |
+| [0014](docs/adr/0014-user-provisioning-by-seed-job.md) | Users are provisioned by an admin seed Job, not open self-registration |
 
 ---
 
