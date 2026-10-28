@@ -68,6 +68,28 @@ module "iam" {
       ]
     }
 
+    user-seed = {
+      namespace       = "shieldops-jobs"
+      service_account = "user-seed"
+      policy_statements = [
+        {
+          sid       = "ReadSeedUsersSecret"
+          actions   = ["secretsmanager:GetSecretValue"]
+          resources = [aws_secretsmanager_secret.seed_users.arn]
+        },
+        {
+          sid       = "DecryptSeedUsersSecret"
+          actions   = ["kms:Decrypt"]
+          resources = [module.kms.key_arn]
+        },
+        {
+          sid       = "ReadAuroraCredential"
+          actions   = ["secretsmanager:GetSecretValue"]
+          resources = [module.rds.secret_arn]
+        }
+      ]
+    }
+
     ingestion-service = {
       namespace       = "shieldops-apps"
       service_account = "ingestion-service"
