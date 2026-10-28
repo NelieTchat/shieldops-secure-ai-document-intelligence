@@ -1,7 +1,7 @@
 # ADR 0013: Observability - Metrics, Logs and Alerting
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 ShieldOps has no observability yet. Pillar 3 (Operational Excellence) needs

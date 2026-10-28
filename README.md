@@ -59,6 +59,7 @@ assuming "why not X":
 | [0010](docs/adr/0010-eliminate-bastion-ssm-and-eks-jobs.md) | Eliminate bastion host — SSM Session Manager + EKS migration Jobs |
 | [0011](docs/adr/0011-langgraph-agentcore-agentic-operations.md) | LangGraph + Bedrock AgentCore for agentic operations (MVP-1 scope) |
 | [0012](docs/adr/0012-private-eks-endpoint-gitops-deploys.md) | Private EKS API endpoint; deploy by GitOps pull, not pipeline push |
+| [0013](docs/adr/0013-observability-metrics-logs-alerting.md) | Self-managed metrics and logs with SNS alerting; strict telemetry rules |
 | [0014](docs/adr/0014-user-provisioning-by-seed-job.md) | Users are provisioned by an admin seed Job, not open self-registration |
 
 ---
@@ -142,7 +143,7 @@ or ownership actually requires it, not by default.
 
 | Phase | Focus | Status |
 |---|---|---|
-| 0 | Architecture Decisions — 12 ADRs locked | Done |
+| 0 | Architecture Decisions — 14 ADRs locked | Done |
 | 1 | Foundation — Terraform (VPC, Route53, WAF, ALB, EKS, KMS, RDS, EFS, S3, ECR, messaging, IAM/IRSA) | Done (validated, not yet applied) |
 | 2 | Application — frontend, api, ingestion-service, document-processor, llm-service | In Progress (all five services built and verified end to end in the sandbox; sandbox-only shims and hard-coded DB defaults still to remove) |
 | 3 | CI/CD — GitHub Actions to ECR to Argo CD GitOps | In Progress (CI running: tests, Terraform validation, image builds, secret and vulnerability scanning; CD waits on the GovCloud account) |
