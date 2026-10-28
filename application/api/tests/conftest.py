@@ -10,6 +10,17 @@ os.environ.setdefault("DB_PORT", "5432")
 os.environ.setdefault("DB_NAME", "shieldops_test")
 os.environ.setdefault("DB_USER", "test-user")
 os.environ.setdefault("DB_PASSWORD", "test-password-only")
+os.environ.setdefault("REGISTRATION_ENABLED", "true")
 
 # The service uses flat imports (from config import ...), so put src/ on the path.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _fresh_login_throttle():
+    from routes import auth_routes
+    auth_routes.reset_login_throttle()
+    yield

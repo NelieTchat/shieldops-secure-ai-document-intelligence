@@ -7,6 +7,13 @@ AWS_REGION = os.environ.get("AWS_REGION", "us-gov-west-1")
 JWT_SECRET = os.environ.get("JWT_SECRET", "")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_MINUTES = int(os.environ.get("JWT_EXPIRES_MINUTES", "30"))
+
+# Registration is closed unless explicitly enabled (demo and tests turn it on).
+REGISTRATION_ENABLED = os.environ.get("REGISTRATION_ENABLED", "false").strip().lower() == "true"
+# Failed logins allowed per username inside the window before the account answers 429.
+# The per-IP limit lives in the WAF, which sees the real client address.
+LOGIN_MAX_FAILURES = int(os.environ.get("LOGIN_MAX_FAILURES", "5"))
+LOGIN_WINDOW_SECONDS = int(os.environ.get("LOGIN_WINDOW_SECONDS", "300"))
 MIN_JWT_SECRET_CHARS = 32
 
 # Documents
