@@ -129,6 +129,13 @@ jobs:
           prom/prometheus@sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2
           check rules /w/shieldops.rules.yml
 
+      - name: promtool test rules (unit tests for the alerts)
+        run: >
+          docker run --rm --entrypoint promtool
+          -v "$PWD/observability/alerts:/w:ro"
+          prom/prometheus@sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2
+          test rules /w/shieldops.rules.test.yml
+
       - name: promtool unit tests (pinned by digest)
         run: >
           docker run --rm --entrypoint promtool
