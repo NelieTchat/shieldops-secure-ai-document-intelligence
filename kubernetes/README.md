@@ -36,3 +36,16 @@ How these are created (for example External Secrets from Secrets Manager) is sti
 - Autoscaling (the old HPA targeted a deployment that no longer exists).
 - NetworkPolicies, for example allowing only the api to reach the llm-service.
 - Argo Rollouts resources for canary services (ADR 0008) and the Argo CD application definitions (ADR 0012).
+
+## One-off Jobs
+
+`kubernetes/jobs/` holds Jobs that are run on demand, not synced with the apps. The
+`user-seed` Job creates the initial users from a Secrets Manager secret (ADR 0014).
+To run it, after the prerequisites in the manifest header exist:
+
+    kubectl -n shieldops-jobs delete job user-seed --ignore-not-found
+    kubectl apply -k kubernetes/jobs
+    kubectl -n shieldops-jobs logs job/user-seed
+
+The log lists usernames and counts only. Existing users are skipped and never
+overwritten.

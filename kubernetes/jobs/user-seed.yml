@@ -1,0 +1,100 @@
+# One-off Job that creates the initial users (ADR 0014). Kept out of the apps base on
+# purpose: a Job must not be re-run or replaced by every GitOps sync.
+#
+# Prerequisites in this namespace, created outside Git:
+#   - Secret db-credentials with the keys host, port, dbname, user, password
+#   - the Secrets Manager secret named in SEED_USERS_SOURCE, filled in by an operator
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: user-seed
+  annotations:
+    # Replaced per environment in the overlay (IRSA role created by Terraform).
+    eks.amazonaws.com/role-arn: arn:aws-us-gov:iam::ACCOUNT_ID:role/REPLACE_IN_OVERLAY
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-seed-config
+data:
+  AWS_REGION: us-gov-west-1
+  SEED_USERS_SOURCE: shieldops/REPLACE_IN_OVERLAY/seed-users
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: user-seed
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 300
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: user-seed
+    spec:
+      restartPolicy: Never
+      serviceAccountName: user-seed
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: user-seed
+          image: shieldops/api:replace-in-overlay
+          command: ["python", "src/seed_users.py"]
+          envFrom:
+            - configMapRef:
+                name: user-seed-config
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: host
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: port
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: dbname
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

@@ -91,12 +91,12 @@ def quiet_main(monkeypatch):
 
 
 def test_main_fails_without_a_secret_id(quiet_main, monkeypatch):
-    monkeypatch.delenv("SEED_USERS_SECRET_ID", raising=False)
+    monkeypatch.delenv("SEED_USERS_SOURCE", raising=False)
     assert seed_users.main() == 2
 
 
 def test_main_succeeds_and_fails_on_invalid_entries(quiet_main, store, monkeypatch):
-    monkeypatch.setenv("SEED_USERS_SECRET_ID", "any")
+    monkeypatch.setenv("SEED_USERS_SOURCE", "any")
     monkeypatch.setattr(seed_users, "read_secret", lambda secret_id: {"alice": PASSWORD})
     assert seed_users.main() == 0
     monkeypatch.setattr(seed_users, "read_secret", lambda secret_id: {"bob": "short"})

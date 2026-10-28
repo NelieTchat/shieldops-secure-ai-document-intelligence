@@ -68,9 +68,9 @@ def seed(entries: dict) -> dict:
 
 def main() -> int:
     configure_logging()
-    secret_id = os.environ.get("SEED_USERS_SECRET_ID", "")
+    secret_id = os.environ.get("SEED_USERS_SOURCE", "")
     if not secret_id:
-        log.error("SEED_USERS_SECRET_ID is not set")
+        log.error("SEED_USERS_SOURCE is not set")
         return 2
     config.require_db_config()
     try:
