@@ -27,5 +27,5 @@ def parse_upload_event(raw_json: str) -> UploadEvent | None:
     try:
         return UploadEvent.model_validate_json(raw_json)
     except ValidationError as e:
-        print("Invalid message, skipping:", e)
+        print("Invalid message, skipping:", type(e).__name__)
         return None

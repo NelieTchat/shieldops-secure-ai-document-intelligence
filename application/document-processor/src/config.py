@@ -29,9 +29,6 @@ def require_db_config() -> dict:
         raise RuntimeError("Missing required database settings: " + ", ".join(missing))
     return {**DB_CONFIG, "port": int(DB_CONFIG["port"])}
 
-print("Configured region:", AWS_REGION)
-print("Configured processing queue URL:", PROCESSING_QUEUE_URL or "(not set yet)")
-print("Embedding model:", EMBEDDING_MODEL_ID, "| dims:", EMBEDDING_DIMENSIONS, "| region:", BEDROCK_REGION)
 
 # Prometheus metrics are served on a separate, internal-only port (ADR 0013).
 METRICS_HOST = os.environ.get("METRICS_HOST", "127.0.0.1")
