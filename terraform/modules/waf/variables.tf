@@ -15,6 +15,12 @@ variable "rate_limit" {
   default     = 2000
 }
 
+variable "login_rate_limit" {
+  description = "Max requests to /auth/login per 5-minute window per IP before blocking (AWS minimum is 10)."
+  type        = number
+  default     = 50
+}
+
 variable "tags" {
   description = "Tags applied to the Web ACL."
   type        = map(string)

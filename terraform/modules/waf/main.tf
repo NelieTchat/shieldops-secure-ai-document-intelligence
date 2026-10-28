@@ -123,5 +123,45 @@ resource "aws_wafv2_web_acl" "this" {
     }
   }
 
+  # Password-guessing protection. The api also throttles per username; this limit is
+  # per client IP, which only the WAF can see.
+  rule {
+    name     = "rate-limit-login-per-ip"
+    priority = 6
+
+    action {
+      block {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit              = var.login_rate_limit
+        aggregate_key_type = "IP"
+
+        scope_down_statement {
+          byte_match_statement {
+            search_string         = "/auth/login"
+            positional_constraint = "STARTS_WITH"
+
+            field_to_match {
+              uri_path {}
+            }
+
+            text_transformation {
+              priority = 0
+              type     = "LOWERCASE"
+            }
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${var.name}-${var.environment}-rate-limit-login"
+      sampled_requests_enabled   = true
+    }
+  }
+
   tags = var.tags
 }
