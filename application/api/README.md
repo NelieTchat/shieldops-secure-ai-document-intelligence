@@ -33,6 +33,9 @@ Public-facing FastAPI service for ShieldOps. It handles user accounts, document 
 | LLM_SERVICE_URL | no | Default http://127.0.0.1:8080 |
 | SIMULATE_S3_EVENT | no | true = /complete sends an S3-style event (sandbox only) |
 | DB_* | yes | Database connection settings |
+| REGISTRATION_ENABLED | no | Default false: /auth/register answers 403. Set true for the sandbox demo only |
+| LOGIN_MAX_FAILURES | no | Default 5 failed logins per username inside the window, then 429 with Retry-After |
+| LOGIN_WINDOW_SECONDS | no | Default 300. The per-IP limit belongs in the WAF, which sees the real client address |
 | HOST, PORT | no | Default 127.0.0.1 and 8000. Set HOST=0.0.0.0 inside a container |
 
 ## Run locally

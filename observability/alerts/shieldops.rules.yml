@@ -69,7 +69,7 @@ groups:
   - name: shieldops-security
     rules:
       - alert: LoginFailureSpike
-        expr: 'sum(increase(shieldops_login_attempts_total{outcome="failure"}[5m])) > 20'
+        expr: 'sum(increase(shieldops_login_attempts_total{outcome=~"failure|throttled"}[5m])) > 20'
         for: 2m
         labels:
           severity: warning

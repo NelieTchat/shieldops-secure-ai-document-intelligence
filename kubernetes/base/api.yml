@@ -90,6 +90,9 @@ spec:
                 secretKeyRef:
                   name: db-credentials
                   key: password
+            # Closed on purpose: there is no user-creation path in the cluster yet.
+            - name: REGISTRATION_ENABLED
+              value: "false"
           readinessProbe:
             httpGet:
               path: /health
