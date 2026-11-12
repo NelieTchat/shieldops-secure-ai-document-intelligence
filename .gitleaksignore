@@ -1,0 +1,5 @@
+# Known false positives: fake credentials used as redaction-test fixtures in commit
+# 79ac149 (agents/incident-investigator/tests/test_tools.py). They are not real secrets.
+# The current files build these strings at runtime, so nothing new needs listing here.
+79ac1491e92de812e3e231718f3833f15933a121:agents/incident-investigator/tests/test_tools.py:jwt:111
+79ac1491e92de812e3e231718f3833f15933a121:agents/incident-investigator/tests/test_tools.py:aws-access-token:109
