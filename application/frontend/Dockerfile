@@ -1,5 +1,10 @@
 FROM nginxinc/nginx-unprivileged:stable-alpine
 
+# Pick up Alpine security fixes that the base image has not shipped yet.
+USER root
+RUN apk upgrade --no-cache
+USER 101
+
 # nginx renders this template at startup, filling in API_UPSTREAM.
 COPY default.conf.template /etc/nginx/templates/default.conf.template
 COPY public/ /usr/share/nginx/html/
