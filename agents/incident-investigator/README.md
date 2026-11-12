@@ -24,6 +24,16 @@ specs, environment variables, annotations or secret references. Log lines are tr
 capped and scrubbed of obvious credentials. Real EKS and CloudWatch clients come later and
 must implement exactly those interfaces.
 
+## Reasoner (ADR 0011 step 3)
+
+`src/investigator/reasoner.py` calls Amazon Bedrock through the Converse API with boto3.
+The model only reasons over evidence the tools already retrieved. Evidence and the incident
+description are escaped as untrusted data, the evidence in the prompt has a size budget, and
+a single forced `report_diagnosis` pseudo-tool returns schema-valid JSON. Nothing the model
+says is executed. Configuration has no defaults: `AGENT_MODEL_ID` and `AGENT_BEDROCK_REGION`
+must be set. `scripts/live_check.py` makes one real call with synthetic evidence; it is a
+manual check and never runs in tests or CI.
+
 ## Run the tests
 
     cd agents/incident-investigator
