@@ -9,6 +9,7 @@ httpcore2==2.16.0
 httpx==0.28.1
 httpx2==2.16.0
 idna==3.20
+iniconfig==2.3.1
 jsonpatch==1.47
 jsonpointer==3.12
 langchain-core==1.8.0
@@ -21,8 +22,11 @@ langsmith==0.14.17
 orjson==3.13.0
 ormsgpack==1.13.1
 packaging==26.3
+pluggy==1.7.0
 pydantic==2.14.3
 pydantic_core==2.50.4
+Pygments==2.21.0
+pytest==9.2.0
 PyYAML==6.0.3
 requests==2.34.2
 requests-toolbelt==1.0.0
