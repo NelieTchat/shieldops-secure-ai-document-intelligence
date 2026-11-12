@@ -15,6 +15,15 @@ recorded by exception type only.
 Graph: make_plan -> gather_evidence -> (reason_over_evidence) -> write_report.
 If no tool returns usable evidence, the model is skipped and the report says so.
 
+## Tools (ADR 0011 step 2)
+
+`get_pod_status`, `get_pod_events`, `get_deployment_status` and `search_cloudwatch_logs`
+live in `src/investigator/tools.py`. They talk only to the two read-only interfaces in
+`clients.py`, validate every argument, and return a safe subset of fields: never pod
+specs, environment variables, annotations or secret references. Log lines are trimmed,
+capped and scrubbed of obvious credentials. Real EKS and CloudWatch clients come later and
+must implement exactly those interfaces.
+
 ## Run the tests
 
     cd agents/incident-investigator
